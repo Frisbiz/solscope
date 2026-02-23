@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SolScope — Solana Wallet Intelligence</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg:      #080b10;
+    --surface: #0d1117;
+    --surf2:   #131922;
+    --border:  #1c2333;
+    --border2: #243045;
+    --accent:  #9945ff;
+    --green:   #14f195;
+    --red:     #f05c5c;
+    --yellow:  #ffd166;
+    --orange:  #f4845f;
+    --blue:    #60a5fa;
+    --text:    #e2e8f0;
+    --muted:   #7a8a9e;
+    --dim:     #3d4f63;
+    --mono:    'Space Mono', monospace;
+    --sans:    'DM Sans', sans-serif;
+    --r:       8px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 80% 10%, rgba(153,69,255,.07) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 30% at 10% 80%, rgba(20,241,149,.04) 0%, transparent 50%);
+  }
+
+  .wrap { max-width: 1400px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+  /* ── HEADER ─────────────────────────────────────────── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 0;
+    position: sticky; top: 0;
+    background: rgba(8,11,16,.95);
+    backdrop-filter: blur(16px);
+    z-index: 100;
+  }
+  .header-inner {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; height: 56px;
+  }
+  .logo { font-family: var(--mono); font-size: 15px; display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .logo-icon {
+    width: 30px; height: 30px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--accent), var(--green));
+    border-radius: 7px; display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+  }
+  .logo-text { color: var(--text); }
+  .logo-text em { color: var(--green); font-style: normal; }
+  .header-right { display: flex; align-items: center; gap: 8px; }
+
+  .status-pill {
+    font-family: var(--mono); font-size: 10px; padding: 4px 10px;
+    border-radius: 20px; border: 1px solid var(--border2); color: var(--dim);
+    background: var(--surf2);
+  }
+  .status-pill.running { border-color: var(--accent); color: var(--accent); background: rgba(153,69,255,.08); }
+  .status-pill.done    { border-color: var(--green);  color: var(--green);  background: rgba(20,241,149,.08); }
+  .status-pill.error   { border-color: var(--red);    color: var(--red);    background: rgba(240,92,92,.08);  }
+
+  /* ── BUTTONS ─────────────────────────────────────────── */
+  .btn {
+    border: none; border-radius: 6px; padding: 8px 16px;
+    font-family: var(--sans); font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all .15s; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #8535e6; }
+  .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+  .btn-ghost  { background: transparent; border: 1px solid var(--border2); color: var(--muted); }
+  .btn-ghost:hover  { border-color: var(--accent); color: var(--accent); }
+  .btn-sm { padding: 5px 10px; font-size: 11px; }
+
+  /* ── MAIN ────────────────────────────────────────────── */
+  main { padding: 24px 0 60px; }
+
+  /* ── STATS ROW ───────────────────────────────────────── */
+  .stats-row {
+    display: grid; grid-template-columns: repeat(6, 1fr);
+    gap: 10px; margin-bottom: 20px;
+  }
+  @media (max-width: 900px) { .stats-row { grid-template-columns: repeat(3, 1fr); } }
+
+  .stat {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r); padding: 14px 16px;
+    position: relative; overflow: hidden;
+  }
+  .stat::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px; border-radius: 3px 0 0 3px;
+  }
+  .stat.c-purple::before { background: var(--accent); }
+  .stat.c-green::before  { background: var(--green); }
+  .stat.c-blue::before   { background: var(--blue); }
+  .stat.c-yellow::before { background: var(--yellow); }
+  .stat.c-orange::before { background: var(--orange); }
+  .stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-family: var(--mono); margin-bottom: 6px; }
+  .stat-val   { font-size: 20px; font-weight: 700; font-family: var(--mono); }
+  .cv-purple { color: var(--accent); }
+  .cv-green  { color: var(--green);  }
+  .cv-blue   { color: var(--blue);   }
+  .cv-yellow { color: var(--yellow); }
+  .cv-orange { color: var(--orange); }
+  .cv-red    { color: var(--red);    }
+
+  /* ── SCRAPE CONFIG ───────────────────────────────────── */
+  .scrape-config {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r); padding: 12px 16px; margin-bottom: 12px;
+  }
+  .cfg-label {
+    font-size: 9px; text-transform: uppercase; letter-spacing: 1.2px;
+    color: var(--dim); font-family: var(--mono); font-weight: 700;
+  }
+  .cfg-sep { width: 1px; height: 20px; background: var(--border2); margin: 0 4px; flex-shrink: 0; }
+
+  .cb-label {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 12px; color: var(--text); cursor: pointer; user-select: none;
+    font-family: var(--mono);
+  }
+  .cb-label input[type=checkbox] { accent-color: var(--accent); width: 13px; height: 13px; cursor: pointer; }
+
+  .fi {
+    background: var(--surf2); border: 1px solid var(--border);
+    border-radius: 5px; color: var(--text); font-size: 11px;
+    padding: 5px 9px; outline: none; font-family: var(--mono);
+    transition: border-color .2s;
+  }
+  .fi::placeholder { color: var(--dim); }
+  .fi:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(153,69,255,.1); }
+  .fi-xs  { width: 52px; }
+  .fi-sm  { width: 70px; }
+  .fi-md  { width: 90px; }
+  .fi-lg  { width: 200px; }
+
+  /* ── LOG PANEL ───────────────────────────────────────── */
+  .log-panel {
+    display: none;
+    background: #060a0f; border: 1px solid var(--border);
+    border-radius: var(--r); padding: 12px 14px;
+    font-family: var(--mono); font-size: 11px; line-height: 1.7;
+    max-height: 200px; overflow-y: auto;
+    margin-bottom: 12px;
+    scrollbar-width: thin; scrollbar-color: var(--border2) transparent;
+  }
+  .log-line     { color: var(--muted); }
+  .log-line.ok  { color: var(--green); }
+  .log-line.err { color: var(--red);   }
+  .log-line.inf { color: var(--blue);  }
+
+  .progress-bar-wrap {
+    display: none; height: 3px; background: var(--border);
+    border-radius: 2px; margin-bottom: 14px; overflow: hidden;
+  }
+  .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--green)); border-radius: 2px; transition: width .3s; }
+
+  /* ── TOOLBAR ─────────────────────────────────────────── */
+  .toolbar {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 10px; flex-wrap: wrap;
+  }
+  .tb-sep { width: 1px; height: 22px; background: var(--border2); margin: 0 2px; flex-shrink: 0; }
+  .tb-lbl { font-size: 9px; color: var(--dim); font-family: var(--mono); text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; }
+
+  .sort-btn {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 5px; color: var(--muted); font-size: 11px;
+    padding: 5px 11px; cursor: pointer;
+    display: flex; align-items: center; gap: 4px;
+    transition: all .12s; font-family: var(--mono); white-space: nowrap; user-select: none;
+  }
+  .sort-btn:hover  { border-color: var(--accent); color: var(--text); }
+  .sort-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(153,69,255,.08); }
+
+  .sel {
+    background: var(--surf2); border: 1px solid var(--border);
+    border-radius: 5px; color: var(--muted); font-size: 11px;
+    padding: 5px 9px; outline: none; cursor: pointer; font-family: var(--mono);
+    transition: border-color .2s;
+  }
+  .sel:focus { border-color: var(--accent); }
+
+  .filter-toggle {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 5px; color: var(--muted); font-size: 11px;
+    padding: 5px 11px; cursor: pointer; font-family: var(--mono); white-space: nowrap;
+    transition: all .12s;
+  }
+  .filter-toggle:hover, .filter-toggle.on { border-color: var(--accent); color: var(--accent); background: rgba(153,69,255,.08); }
+  .filter-dot { color: var(--accent); font-size: 8px; display: none; }
+  .filter-dot.on { display: inline; }
+
+  .count-badge {
+    background: rgba(153,69,255,.1); border: 1px solid rgba(153,69,255,.2);
+    border-radius: 20px; padding: 3px 12px;
+    font-family: var(--mono); font-size: 11px; color: var(--accent);
+    margin-left: auto;
+  }
+
+  /* ── FILTER PANEL ────────────────────────────────────── */
+  .filter-panel {
+    display: none;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r); padding: 16px 18px;
+    margin-bottom: 12px;
+    animation: fadeIn .15s ease;
+  }
+  .filter-panel.open { display: block; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:none; } }
+
+  .filter-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 20px; margin-bottom: 14px;
+  }
+  @media (max-width: 900px) { .filter-grid { grid-template-columns: repeat(2,1fr); } }
+
+  .fg-title {
+    font-size: 9px; text-transform: uppercase; letter-spacing: 1.2px;
+    color: var(--muted); font-family: var(--mono); font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .fg-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+  .fg-lbl { font-size: 10px; color: var(--dim); font-family: var(--mono); width: 30px; flex-shrink: 0; }
+
+  .filter-footer { display: flex; align-items: center; gap: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+  .filter-summary { font-size: 11px; color: var(--muted); font-family: var(--mono); flex: 1; }
+
+  /* ── TABLE ───────────────────────────────────────────── */
+  .table-wrap {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r); overflow: hidden;
+  }
+
+  .cols { grid-template-columns: 44px 1fr 90px 130px 140px 130px 80px 110px 130px; }
+
+  .thead {
+    display: grid; background: var(--surf2);
+    border-bottom: 1px solid var(--border);
+  }
+  .thead.cols { grid-template-columns: 44px 1fr 90px 130px 140px 130px 80px 110px 130px; }
+
+  .th {
+    font-family: var(--mono); font-size: 9px; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--dim);
+    padding: 11px 12px; cursor: pointer; user-select: none;
+    display: flex; align-items: center; gap: 3px;
+    transition: color .12s; border-right: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .th:last-child { border-right: none; }
+  .th:hover { color: var(--muted); }
+  .th.sorted { color: var(--accent); }
+  .th.ns { cursor: default; }
+  .th.ns:hover { color: var(--dim); }
+
+  #tableBody { overflow-y: auto; max-height: calc(100vh - 320px); min-height: 280px; }
+
+  .wrow {
+    display: grid;
+    grid-template-columns: 44px 1fr 90px 130px 140px 130px 80px 110px 130px;
+    border-bottom: 1px solid var(--border);
+    transition: background .08s;
+  }
+  .wrow:last-child { border-bottom: none; }
+  .wrow:hover { background: rgba(153,69,255,.04); }
+
+  .td {
+    padding: 10px 12px; font-size: 12px;
+    border-right: 1px solid var(--border);
+    display: flex; align-items: center; overflow: hidden;
+  }
+  .td:last-child { border-right: none; }
+
+  .td-num { color: var(--dim); font-family: var(--mono); font-size: 11px; }
+
+  .w-info { flex-direction: column; align-items: flex-start; gap: 3px; }
+  .w-addr { font-family: var(--mono); font-size: 11px; color: var(--green); cursor: pointer; transition: color .1s; }
+  .w-addr:hover { color: #fff; }
+  .w-meta { display: flex; align-items: center; gap: 5px; }
+  .w-lbl  { font-size: 10px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+
+  .src-badge {
+    font-size: 9px; padding: 1px 5px; border-radius: 3px;
+    font-weight: 700; letter-spacing: .5px; text-transform: uppercase; flex-shrink: 0;
+  }
+  .src-gmgn     { background: rgba(20,241,149,.1); color: var(--green); border: 1px solid rgba(20,241,149,.2); }
+  .src-trending { background: rgba(244,132,95,.1); color: var(--orange); border: 1px solid rgba(244,132,95,.2); }
+
+  .tag { display: inline-block; font-family: var(--mono); font-size: 9px; padding: 2px 7px; border-radius: 3px; font-weight: 700; letter-spacing: .3px; white-space: nowrap; }
+  .t-whale { background: rgba(255,209,102,.12); border: 1px solid rgba(255,209,102,.25); color: var(--yellow); }
+  .t-bot   { background: rgba(20,241,149,.12);  border: 1px solid rgba(20,241,149,.25);  color: var(--green);  }
+  .t-smart { background: rgba(153,69,255,.12);  border: 1px solid rgba(153,69,255,.25);  color: var(--accent); }
+
+  .pnl-p { color: var(--green);  font-family: var(--mono); font-size: 12px; font-weight: 700; }
+  .pnl-n { color: var(--red);    font-family: var(--mono); font-size: 12px; font-weight: 700; }
+
+  .wr-wrap { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .wr-pct  { font-family: var(--mono); font-size: 12px; font-weight: 700; }
+  .wr-bar  { width: 80px; height: 3px; border-radius: 2px; background: var(--border2); overflow: hidden; }
+  .wr-fill { height: 100%; border-radius: 2px; }
+
+  .hold-wrap { flex-direction: column; align-items: flex-start; gap: 1px; }
+  .hold-v { font-family: var(--mono); font-size: 13px; }
+  .hold-u { font-size: 10px; color: var(--dim); }
+
+  .trd { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+
+  .acts { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; }
+
+  .btn-view {
+    display: inline-flex; align-items: center; gap: 3px;
+    padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 700;
+    background: rgba(20,241,149,.1); color: var(--green);
+    border: 1px solid rgba(20,241,149,.25);
+    text-decoration: none; white-space: nowrap; font-family: var(--mono);
+    transition: background .15s; letter-spacing: .3px;
+  }
+  .btn-view:hover { background: rgba(20,241,149,.22); }
+
+  .btn-del {
+    display: inline-flex; align-items: center;
+    background: transparent; border: 1px solid rgba(240,92,92,.25);
+    color: var(--red); font-size: 13px; line-height: 1;
+    padding: 3px 7px; border-radius: 4px; cursor: pointer;
+    transition: all .12s; flex-shrink: 0;
+  }
+  .btn-del:hover { background: rgba(240,92,92,.12); }
+
+  /* ── EMPTY STATE ─────────────────────────────────────── */
+  .empty { text-align: center; padding: 70px 20px; }
+  .empty-icon { font-size: 32px; margin-bottom: 12px; color: var(--dim); }
+  .empty-text { font-family: var(--mono); font-size: 12px; color: var(--dim); line-height: 2; }
+
+  /* ── TOAST ───────────────────────────────────────────── */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--surf2); border: 1px solid var(--border2);
+    color: var(--text); font-family: var(--mono); font-size: 12px;
+    padding: 10px 20px; border-radius: 20px;
+    opacity: 0; transition: all .25s; pointer-events: none; white-space: nowrap; z-index: 999;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="header-inner">
+      <a class="logo" href="#">
+        <div class="logo-icon">◎</div>
+        <span class="logo-text">Sol<em>Scope</em></span>
+      </a>
+      <div class="header-right">
+        <span class="status-pill" id="statusPill">◎ Idle</span>
+        <button class="btn btn-primary" id="scrapeBtn" onclick="startScrape()">▶ Auto-Discover Wallets</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+<div class="wrap">
+
+  <!-- Stats row -->
+  <div class="stats-row">
+    <div class="stat c-purple"><div class="stat-label">Wallets Tracked</div><div class="stat-val cv-purple" id="s-count">0</div></div>
+    <div class="stat c-green"> <div class="stat-label">Avg Win Rate</div>  <div class="stat-val cv-green"  id="s-wr">—</div></div>
+    <div class="stat c-green"> <div class="stat-label">Total PnL</div>     <div class="stat-val"            id="s-pnl">—</div></div>
+    <div class="stat c-blue">  <div class="stat-label">Avg Hold Time</div> <div class="stat-val cv-blue"    id="s-hold">—</div></div>
+    <div class="stat c-yellow"><div class="stat-label">Profitable</div>    <div class="stat-val cv-yellow"  id="s-prof">—</div></div>
+    <div class="stat c-orange"><div class="stat-label">Shown / Total</div> <div class="stat-val cv-orange"  id="s-shown">—</div></div>
+  </div>
+
+  <!-- Scrape config -->
+  <div class="scrape-config">
+    <span class="cfg-label">Sources</span>
+    <label class="cb-label"><input type="checkbox" id="cfgGmgn" checked> GMGN Leaderboards</label>
+    <label class="cb-label"><input type="checkbox" id="cfgTrending" checked> Trending Buyers</label>
+    <div class="cfg-sep"></div>
+    <span class="cfg-label">Threshold</span>
+    <span style="font-size:11px;color:var(--muted)">Min WR</span>
+    <input class="fi fi-xs" id="cfgMinWr" value="0" placeholder="0" />
+    <span style="font-size:11px;color:var(--dim)">%</span>
+    <span style="font-size:11px;color:var(--muted)">Min PnL</span>
+    <span style="font-size:11px;color:var(--dim)">$</span>
+    <input class="fi fi-sm" id="cfgMinPnl" value="0" placeholder="0" />
+    <span style="font-size:11px;color:var(--muted)">Min Trades</span>
+    <input class="fi fi-xs" id="cfgMinTrades" value="5" placeholder="5" />
+  </div>
+
+  <!-- Log + progress -->
+  <div class="log-panel" id="logPanel"></div>
+  <div class="progress-bar-wrap" id="progressWrap">
+    <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <span class="tb-lbl">Sort</span>
+    <button class="sort-btn active" id="sb-pnl"      onclick="setSort('pnl')">PnL <span id="a-pnl">↓</span></button>
+    <button class="sort-btn"        id="sb-winrate"  onclick="setSort('winrate')">Win Rate <span id="a-wr">↓</span></button>
+    <button class="sort-btn"        id="sb-holdtime" onclick="setSort('holdtime')">Hold Time <span id="a-ht">↓</span></button>
+    <button class="sort-btn"        id="sb-trades"   onclick="setSort('trades')">Trades <span id="a-tr">↓</span></button>
+    <div class="tb-sep"></div>
+    <input class="fi fi-lg" id="fSearch" placeholder="search address or label…" oninput="applyFilters()" />
+    <select class="sel" id="fTag" onchange="applyFilters()">
+      <option value="">All Tags</option>
+      <option value="whale">🐋 Whale</option>
+      <option value="smart">🧠 Smart</option>
+      <option value="bot">🤖 Bot</option>
+    </select>
+    <div class="tb-sep"></div>
+    <button class="filter-toggle" id="filterBtn" onclick="toggleFilters()">
+      ⚙ Filters <span class="filter-dot" id="filterDot">●</span>
+    </button>
+    <span class="count-badge" id="cBadge">0 wallets</span>
+    <button class="btn btn-ghost btn-sm" onclick="clearAll()">Clear All</button>
+  </div>
+
+  <!-- Filter panel -->
+  <div class="filter-panel" id="filterPanel">
+    <div class="filter-grid">
+
+      <div>
+        <div class="fg-title">💰 PnL (USD)</div>
+        <div class="fg-row">
+          <span class="fg-lbl">Min $</span>
+          <input class="fi fi-sm" id="fPnlMin" placeholder="e.g. 500" oninput="applyFilters()" />
+        </div>
+        <div class="fg-row">
+          <span class="fg-lbl">Max $</span>
+          <input class="fi fi-sm" id="fPnlMax" placeholder="no limit" oninput="applyFilters()" />
+        </div>
+      </div>
+
+      <div>
+        <div class="fg-title">🎯 Win Rate</div>
+        <div class="fg-row">
+          <span class="fg-lbl">Min %</span>
+          <input class="fi fi-sm" id="fWrMin" placeholder="e.g. 50" oninput="applyFilters()" />
+        </div>
+        <div class="fg-row">
+          <span class="fg-lbl">Max %</span>
+          <input class="fi fi-sm" id="fWrMax" placeholder="no limit" oninput="applyFilters()" />
+        </div>
+      </div>
+
+      <div>
+        <div class="fg-title">⏱ Hold Time (mins)</div>
+        <div class="fg-row">
+          <span class="fg-lbl">Min</span>
+          <input class="fi fi-sm" id="fHoldMin" placeholder="e.g. 30" oninput="applyFilters()" />
+        </div>
+        <div class="fg-row">
+          <span class="fg-lbl">Max</span>
+          <input class="fi fi-sm" id="fHoldMax" placeholder="no limit" oninput="applyFilters()" />
+        </div>
+      </div>
+
+      <div>
+        <div class="fg-title">🔁 Trades</div>
+        <div class="fg-row">
+          <span class="fg-lbl">Min</span>
+          <input class="fi fi-sm" id="fTradesMin" placeholder="e.g. 10" oninput="applyFilters()" />
+        </div>
+        <div class="fg-row">
+          <span class="fg-lbl">Max</span>
+          <input class="fi fi-sm" id="fTradesMax" placeholder="no limit" oninput="applyFilters()" />
+        </div>
+      </div>
+
+    </div>
+    <div class="filter-footer">
+      <button class="btn btn-ghost btn-sm" onclick="resetFilters()">Reset All</button>
+      <span class="filter-summary" id="filterSummary"></span>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <div class="thead cols">
+      <div class="th ns">#</div>
+      <div class="th ns">Wallet</div>
+      <div class="th ns">Tag</div>
+      <div class="th sorted" id="th-pnl"      onclick="setSort('pnl')">Realized PnL <span id="ta-pnl">↓</span></div>
+      <div class="th"         id="th-winrate"  onclick="setSort('winrate')">Win Rate <span id="ta-wr">↓</span></div>
+      <div class="th"         id="th-holdtime" onclick="setSort('holdtime')">Avg Hold <span id="ta-ht">↓</span></div>
+      <div class="th"         id="th-trades"   onclick="setSort('trades')">Trades <span id="ta-tr">↓</span></div>
+      <div class="th ns">Last Active</div>
+      <div class="th ns">Actions</div>
+    </div>
+    <div id="tableBody"></div>
+    <div class="empty" id="emptyMsg">
+      <div class="empty-icon">◎</div>
+      <div class="empty-text">No wallets yet.<br>Hit <b style="color:var(--green)">▶ Auto-Discover Wallets</b> to start.</div>
+    </div>
+  </div>
+
+</div>
+</main>
+
+<div class="toast" id="toastEl"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// SolScope — GMGN-powered Solana wallet tracker
+// Requires: python3 server.py → http://localhost:8080
+// ═══════════════════════════════════════════════════════════════
+
+let wallets   = [];
+let filtered  = [];
+let sortField = 'pnl';
+let sortAsc   = false;
+let scraping  = false;
+
+// ── Persist ───────────────────────────────────────────────────
+function save() { try { localStorage.setItem('solscope10', JSON.stringify(wallets)); } catch(e){} }
+function load() { try { const d = localStorage.getItem('solscope10'); if (d) wallets = JSON.parse(d); } catch(e){} }
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// ── UI helpers ────────────────────────────────────────────────
+function log(msg, type='') {
+  const p = document.getElementById('logPanel');
+  p.style.display = 'block';
+  const l = document.createElement('div');
+  l.className = 'log-line ' + type;
+  l.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+  p.appendChild(l);
+  p.scrollTop = p.scrollHeight;
+}
+function setProgress(pct) {
+  document.getElementById('progressWrap').style.display = 'block';
+  document.getElementById('progressFill').style.width = Math.min(100, pct) + '%';
+}
+function setStatus(text, type='') {
+  const el = document.getElementById('statusPill');
+  el.textContent = '◎ ' + text;
+  el.className = 'status-pill ' + type;
+}
+function toast(msg) {
+  const t = document.getElementById('toastEl');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+// ── Proxy fetch (works locally AND on Railway — same origin) ──
+const PROXY_BASE = window.location.hostname === 'localhost'
+  ? 'http://localhost:8080'
+  : window.location.origin;
+
+async function pf(url) {
+  const r = await fetch(PROXY_BASE + '/proxy?' + encodeURIComponent(url));
+  if (!r.ok) throw new Error('proxy ' + r.status);
+  const j = await r.json();
+  if (j.error) throw new Error(j.error);
+  return j;
+}
+
+// ── Parse leaderboard entry (confirmed field names) ───────────
+function parseEntry(w, period) {
+  const addr = w.wallet_address || w.address;
+  if (!addr) return null;
+  const pnl     = parseFloat(w[`realized_profit_${period}`] ?? 0);
+  const winrate = parseFloat(w[`winrate_${period}`] ?? 0);
+  const holdSec = parseFloat(w[`avg_holding_period_${period}`] ?? 0);
+  const buys    = parseInt(w[`buy_${period}`]  ?? w.buy  ?? 0);
+  const sells   = parseInt(w[`sell_${period}`] ?? w.sell ?? 0);
+  return { addr, pnl, winrate, holdMins: Math.round(holdSec / 60), trades: buys + sells };
+}
+
+function makeWallet(addr, pnl, winrate, holdMins, trades, source) {
+  return {
+    id: addr, address: addr, label: '', source,
+    tag: pnl > 50000 ? 'whale' : winrate > 0.65 ? 'smart' : trades > 300 ? 'bot' : '',
+    pnl, winrate, holdMins, trades,
+    lastActive: Date.now()
+  };
+}
+
+// ── Source 1: GMGN leaderboards ───────────────────────────────
+async function scrapeLeaderboards(minWr, minPnl, minTrades, seen) {
+  const endpoints = [
+    { url: 'https://gmgn.ai/defi/quotation/v1/rank/sol/wallets/1d?orderby=pnl&direction=desc&limit=200',     label: '1d PnL',     period: '1d'  },
+    { url: 'https://gmgn.ai/defi/quotation/v1/rank/sol/wallets/1d?orderby=winrate&direction=desc&limit=200', label: '1d WinRate', period: '1d'  },
+    { url: 'https://gmgn.ai/defi/quotation/v1/rank/sol/wallets/7d?orderby=pnl&direction=desc&limit=200',     label: '7d PnL',     period: '7d'  },
+    { url: 'https://gmgn.ai/defi/quotation/v1/rank/sol/wallets/7d?orderby=winrate&direction=desc&limit=200', label: '7d WinRate', period: '7d'  },
+    { url: 'https://gmgn.ai/defi/quotation/v1/rank/sol/wallets/30d?orderby=pnl&direction=desc&limit=200',    label: '30d PnL',    period: '30d' },
+    { url: 'https://gmgn.ai/defi/quotation/v1/rank/sol/wallets/30d?orderby=winrate&direction=desc&limit=200',label: '30d WinRate',period: '30d' },
+  ];
+
+  let added = 0;
+  for (let i = 0; i < endpoints.length; i++) {
+    const { url, label, period } = endpoints[i];
+    try {
+      log(`[Leaderboard] ${label}…`);
+      const d = await pf(url);
+      const list = d.data?.rank || d.rank || [];
+      log(`[Leaderboard] ${label} — ${list.length} entries`);
+
+      for (const w of list) {
+        const s = parseEntry(w, period);
+        if (!s || seen.has(s.addr)) continue;
+        if (s.winrate < minWr || s.pnl < minPnl || s.trades < minTrades) continue;
+        seen.add(s.addr);
+        wallets.unshift(makeWallet(s.addr, s.pnl, s.winrate, s.holdMins, s.trades, 'gmgn'));
+        added++;
+        log(`  ✓ ${s.addr.slice(0,8)}… $${Math.round(s.pnl).toLocaleString()} ${Math.round(s.winrate*100)}%WR`, 'ok');
+      }
+      save(); applyFilters();
+      setProgress(5 + Math.round((i+1)/endpoints.length * 55));
+      await sleep(650);
+    } catch(e) {
+      log(`[Leaderboard] ${label} failed: ${e.message}`, 'err');
+    }
+  }
+  return added;
+}
+
+// ── Source 2: trending token top buyers ───────────────────────
+async function scrapeTrending(minWr, minPnl, minTrades, seen) {
+  log('[Trending] Fetching hot tokens…', 'inf');
+  let added = 0;
+  const trendingAddrs = [];
+
+  // Step 1: collect wallet addresses from trending token buyers
+  try {
+    const td = await pf('https://gmgn.ai/defi/quotation/v1/rank/sol/swaps/1h?orderby=swaps&direction=desc&limit=20');
+    const tokens = (td.data?.rank || td.rank || []).map(t => t.address || t.token_address).filter(Boolean).slice(0, 15);
+    log(`[Trending] ${tokens.length} hot tokens`);
+
+    for (let i = 0; i < tokens.length; i++) {
+      const tok = tokens[i];
+      try {
+        const bd = await pf(`https://gmgn.ai/defi/quotation/v1/tokens/top_buyers/sol/${tok}?limit=50&orderby=profit&direction=desc`);
+        let buyers = bd.data?.holders ?? bd.holders ?? bd.data ?? [];
+        if (!Array.isArray(buyers)) buyers = Object.values(buyers).find(v => Array.isArray(v)) || [];
+        for (const b of buyers) {
+          const addr = b.wallet_address || b.address;
+          if (addr && !seen.has(addr)) { seen.add(addr); trendingAddrs.push(addr); }
+        }
+        setProgress(62 + Math.round((i+1)/tokens.length * 18));
+        await sleep(400);
+      } catch(e) { log(`[Trending] ${tok.slice(0,8)}… ${e.message}`, 'err'); }
+    }
+  } catch(e) { log(`[Trending] token fetch failed: ${e.message}`, 'err'); }
+
+  log(`[Trending] ${trendingAddrs.length} unique wallet addresses — fetching stats…`);
+
+  // Step 2: fetch stats for each via smartmoney walletNew endpoint
+  for (let i = 0; i < Math.min(trendingAddrs.length, 80); i++) {
+    const addr = trendingAddrs[i];
+    try {
+      const sd = await pf(`https://gmgn.ai/defi/quotation/v1/smartmoney/sol/walletNew/${addr}?period=7d`);
+      const w = sd.data;
+      if (!w) continue;
+
+      const pnl     = parseFloat(w.realized_profit ?? w.realized_profit_7d ?? 0);
+      const winrate = parseFloat(w.winrate ?? w.winrate_7d ?? 0);
+      const holdSec = parseFloat(w.avg_holding_period ?? w.avg_holding_period_7d ?? 0);
+      const trades  = parseInt(w.buy_7d ?? w.buy ?? 0) + parseInt(w.sell_7d ?? w.sell ?? 0);
+
+      if (winrate < minWr || pnl < minPnl || trades < minTrades) continue;
+
+      wallets.unshift(makeWallet(addr, pnl, winrate, Math.round(holdSec/60), trades, 'trending'));
+      added++;
+      log(`  ✓ [trending] ${addr.slice(0,8)}… $${Math.round(pnl).toLocaleString()} ${Math.round(winrate*100)}%WR`, 'ok');
+      if (added % 10 === 0) { save(); applyFilters(); }
+    } catch(e) { /* wallet not in smartmoney index, skip silently */ }
+
+    setProgress(80 + Math.round((i+1)/Math.min(trendingAddrs.length,80) * 18));
+    await sleep(400);
+  }
+
+  save(); applyFilters();
+  log(`[Trending] Done — ${added} wallets added`, added > 0 ? 'ok' : 'inf');
+  return added;
+}
+
+// ── Main scrape pipeline ──────────────────────────────────────
+async function startScrape() {
+  if (scraping) return;
+  scraping = true;
+  document.getElementById('scrapeBtn').disabled = true;
+  document.getElementById('scrapeBtn').textContent = '⟳ Running…';
+  document.getElementById('logPanel').innerHTML = '';
+  document.getElementById('logPanel').style.display = 'block';
+  setStatus('Scraping…', 'running');
+  setProgress(2);
+
+  const minWr     = (parseFloat(document.getElementById('cfgMinWr').value)     || 0) / 100;
+  const minPnl    =  parseFloat(document.getElementById('cfgMinPnl').value)    || 0;
+  const minTrades =  parseInt(document.getElementById('cfgMinTrades').value)   || 0;
+  const useGmgn   = document.getElementById('cfgGmgn').checked;
+  const useTrend  = document.getElementById('cfgTrending').checked;
+  const seen      = new Set(wallets.map(w => w.address));
+
+  try {
+    let lb = 0, tr = 0;
+    if (useGmgn)  lb = await scrapeLeaderboards(minWr, minPnl, minTrades, seen);
+    if (useTrend) tr = await scrapeTrending(minWr, minPnl, minTrades, seen);
+
+    const total = lb + tr;
+    save(); applyFilters(); setProgress(100);
+    setStatus(`Done — ${total} added`, 'done');
+    log(`✓ ${lb} leaderboard + ${tr} trending = ${total} wallets added`, 'inf');
+    toast(`✓ ${total} wallets added`);
+  } catch(e) {
+    setStatus('Error', 'error');
+    log('Fatal: ' + e.message, 'err');
+  }
+
+  scraping = false;
+  document.getElementById('scrapeBtn').disabled = false;
+  document.getElementById('scrapeBtn').textContent = '▶ Auto-Discover Wallets';
+}
+
+// ── Filter / Sort ─────────────────────────────────────────────
+function toggleFilters() {
+  document.getElementById('filterPanel').classList.toggle('open');
+  document.getElementById('filterBtn').classList.toggle('on');
+}
+
+function resetFilters() {
+  ['fPnlMin','fPnlMax','fWrMin','fWrMax','fHoldMin','fHoldMax','fTradesMin','fTradesMax','fSearch']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  document.getElementById('fTag').value = '';
+  applyFilters();
+}
+
+function applyFilters() {
+  const g   = id => document.getElementById(id)?.value.trim() || '';
+  const num = id => { const v = parseFloat(g(id).replace(/[$,%\s]/g,'')); return isNaN(v) ? null : v; };
+
+  const search    = g('fSearch').toLowerCase();
+  const tagV      = g('fTag');
+  const pnlMin    = num('fPnlMin'),    pnlMax    = num('fPnlMax');
+  const wrMin     = num('fWrMin'),     wrMax     = num('fWrMax');
+  const holdMin   = num('fHoldMin'),   holdMax   = num('fHoldMax');
+  const tradesMin = num('fTradesMin'), tradesMax = num('fTradesMax');
+
+  filtered = wallets.filter(w => {
+    if (search && !w.address.toLowerCase().includes(search) && !(w.label||'').toLowerCase().includes(search)) return false;
+    if (tagV && w.tag !== tagV) return false;
+    if (pnlMin    !== null && w.pnl           < pnlMin)    return false;
+    if (pnlMax    !== null && w.pnl           > pnlMax)    return false;
+    if (wrMin     !== null && w.winrate*100   < wrMin)     return false;
+    if (wrMax     !== null && w.winrate*100   > wrMax)     return false;
+    if (holdMin   !== null && w.holdMins      < holdMin)   return false;
+    if (holdMax   !== null && w.holdMins      > holdMax)   return false;
+    if (tradesMin !== null && w.trades        < tradesMin) return false;
+    if (tradesMax !== null && w.trades        > tradesMax) return false;
+    return true;
+  });
+
+  const fv = ({ pnl: w=>w.pnl, winrate: w=>w.winrate, holdtime: w=>w.holdMins, trades: w=>w.trades })[sortField] || (w=>w.pnl);
+  filtered.sort((a,b) => sortAsc ? fv(a)-fv(b) : fv(b)-fv(a));
+
+  // Active filter summary
+  const parts = [
+    pnlMin    != null ? `PnL ≥ $${pnlMin.toLocaleString()}`    : '',
+    pnlMax    != null ? `PnL ≤ $${pnlMax.toLocaleString()}`    : '',
+    wrMin     != null ? `WR ≥ ${wrMin}%`    : '',
+    wrMax     != null ? `WR ≤ ${wrMax}%`    : '',
+    holdMin   != null ? `Hold ≥ ${holdMin}m` : '',
+    holdMax   != null ? `Hold ≤ ${holdMax}m` : '',
+    tradesMin != null ? `Trades ≥ ${tradesMin}` : '',
+    tradesMax != null ? `Trades ≤ ${tradesMax}` : '',
+  ].filter(Boolean);
+
+  const sum = document.getElementById('filterSummary');
+  if (sum) sum.textContent = parts.length ? parts.join(' · ') : 'No active filters';
+  const dot = document.getElementById('filterDot');
+  if (dot) dot.classList.toggle('on', parts.length > 0);
+
+  render();
+}
+
+function setSort(f) {
+  if (sortField === f) sortAsc = !sortAsc;
+  else { sortField = f; sortAsc = false; }
+  const arr = sortAsc ? '↑' : '↓';
+  const keys = { pnl:'pnl', winrate:'wr', holdtime:'ht', trades:'tr' };
+  ['pnl','winrate','holdtime','trades'].forEach(k => {
+    const on = k === f;
+    document.getElementById('sb-'+k)?.classList.toggle('active', on);
+    document.getElementById('th-'+k)?.classList.toggle('sorted', on);
+    if (on) {
+      const key = keys[k];
+      if (document.getElementById('a-'+key))  document.getElementById('a-'+key).textContent  = arr;
+      if (document.getElementById('ta-'+key)) document.getElementById('ta-'+key).textContent = arr;
+    }
+  });
+  applyFilters();
+}
+
+// ── Render ────────────────────────────────────────────────────
+function render() {
+  const tbody = document.getElementById('tableBody');
+  const empty = document.getElementById('emptyMsg');
+  updateStats();
+  document.getElementById('cBadge').textContent = `${filtered.length} wallet${filtered.length !== 1 ? 's' : ''}`;
+
+  if (!filtered.length) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    empty.innerHTML = scraping
+      ? '<div class="empty-icon" style="animation:pulse 1.2s infinite">◎</div><div class="empty-text">Discovering wallets…<br>Results appear here live.</div>'
+      : '<div class="empty-icon">◎</div><div class="empty-text">No wallets yet.<br>Hit <b style="color:var(--green)">▶ Auto-Discover Wallets</b> to start.</div>';
+    return;
+  }
+
+  empty.style.display = 'none';
+  const frag = document.createDocumentFragment();
+
+  filtered.forEach((w, i) => {
+    const el  = document.createElement('div');
+    el.className = 'wrow';
+    const short  = w.address.slice(0,5) + '…' + w.address.slice(-4);
+    const pnlStr = (w.pnl >= 0 ? '+$' : '-$') + Math.abs(w.pnl).toLocaleString('en', { maximumFractionDigits: 0 });
+    const pnlCls = w.pnl >= 0 ? 'pnl-p' : 'pnl-n';
+    const wr     = Math.round(w.winrate * 100);
+    const wrCol  = wr >= 60 ? 'var(--green)' : wr >= 45 ? 'var(--yellow)' : 'var(--red)';
+    const wrFill = wr >= 60 ? '#14f195'       : wr >= 45 ? '#ffd166'       : '#f05c5c';
+    const hold   = fmtHold(w.holdMins);
+    const tagEl  = w.tag
+      ? `<span class="tag t-${w.tag}">${w.tag}</span>`
+      : `<span style="color:var(--dim);font-size:10px">—</span>`;
+
+    el.innerHTML = `
+      <div class="td td-num">${i+1}</div>
+      <div class="td w-info">
+        <span class="w-addr" onclick="cp('${w.address}')" title="Click to copy">${short}</span>
+        <div class="w-meta">
+          <span class="src-badge src-${w.source||'gmgn'}">${w.source||'gmgn'}</span>
+          ${w.label ? `<span class="w-lbl">${esc(w.label)}</span>` : ''}
+        </div>
+      </div>
+      <div class="td">${tagEl}</div>
+      <div class="td"><span class="${pnlCls}">${pnlStr}</span></div>
+      <div class="td wr-wrap">
+        <span class="wr-pct" style="color:${wrCol}">${wr}%</span>
+        <div class="wr-bar"><div class="wr-fill" style="width:${wr}%;background:${wrFill}"></div></div>
+      </div>
+      <div class="td hold-wrap">
+        <span class="hold-v">${hold.v}</span>
+        <span class="hold-u">${hold.u}</span>
+      </div>
+      <div class="td"><span class="trd">${w.trades.toLocaleString()}</span></div>
+      <div class="td" style="font-family:var(--mono);font-size:11px;color:var(--muted)">${fmtDate(w.lastActive)}</div>
+      <div class="td acts">
+        <a class="btn-view" href="https://gmgn.ai/sol/address/${w.address}" target="_blank">GMGN ↗</a>
+        <button class="btn-del" onclick="removeWallet('${w.id}')" title="Remove">✕</button>
+      </div>`;
+    frag.appendChild(el);
+  });
+
+  tbody.innerHTML = '';
+  tbody.appendChild(frag);
+}
+
+function updateStats() {
+  const list = filtered.length ? filtered : wallets;
+  document.getElementById('s-count').textContent = wallets.length;
+  if (!list.length) {
+    ['s-wr','s-pnl','s-hold','s-prof','s-shown'].forEach(id => document.getElementById(id).textContent = '—');
+    return;
+  }
+  const avgWr   = list.reduce((a,w) => a + w.winrate, 0) / list.length;
+  const total   = list.reduce((a,w) => a + w.pnl, 0);
+  const avgH    = list.reduce((a,w) => a + w.holdMins, 0) / list.length;
+  const prof    = list.filter(w => w.pnl > 0).length;
+  document.getElementById('s-wr').textContent = Math.round(avgWr * 100) + '%';
+  const pe = document.getElementById('s-pnl');
+  pe.textContent  = (total >= 0 ? '+$' : '-$') + Math.abs(total).toLocaleString('en', { maximumFractionDigits: 0 });
+  pe.className    = 'stat-val ' + (total >= 0 ? 'cv-green' : 'cv-red');
+  const h = fmtHold(Math.round(avgH));
+  document.getElementById('s-hold').textContent  = h.v + ' ' + h.u;
+  document.getElementById('s-prof').textContent  = prof + ' / ' + list.length;
+  document.getElementById('s-shown').textContent = filtered.length + ' / ' + wallets.length;
+}
+
+// ── Utils ─────────────────────────────────────────────────────
+function removeWallet(id) { wallets = wallets.filter(w => w.id !== id); save(); applyFilters(); toast('Removed'); }
+function clearAll() {
+  if (!confirm(`Remove all ${wallets.length} wallets?`)) return;
+  wallets = []; save(); applyFilters(); toast('Cleared');
+}
+function fmtHold(m) {
+  if (!m || m < 1) return { v: '—', u: '' };
+  if (m < 60)    return { v: m + 'm',              u: 'minutes' };
+  if (m < 1440)  return { v: (m/60).toFixed(1)+'h',  u: 'hours'   };
+  return               { v: (m/1440).toFixed(1)+'d', u: 'days'    };
+}
+function fmtDate(ts) {
+  const d = (Date.now() - ts) / 86400000;
+  if (d < 1) return 'today';
+  if (d < 2) return '1d ago';
+  return Math.floor(d) + 'd ago';
+}
+function esc(s) { return s.replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c])); }
+function cp(addr) { navigator.clipboard.writeText(addr).catch(()=>{}); toast('Copied ' + addr.slice(0,8) + '…'); }
+
+// Clear old storage keys
+['solscope3','solscope4','solscope5','solscope6','solscope7','solscope8','solscope9'].forEach(k => localStorage.removeItem(k));
+load();
+applyFilters();
+</script>
+</body>
+</html>
