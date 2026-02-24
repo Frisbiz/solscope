@@ -423,11 +423,11 @@ let smartPeriod = '7d';   // period used for smart money leaderboards
 let caPeriod    = '30d';  // period used for CA lookup stats
 
 // ── Persist ───────────────────────────────────────────────────
-function save()         { try { localStorage.setItem('ss11',  JSON.stringify(wallets));  } catch(e){} }
-function saveTrending() { try { localStorage.setItem('ss11t', JSON.stringify(trending)); } catch(e){} }
+function save()         { try { localStorage.setItem('ss12',  JSON.stringify(wallets));  } catch(e){} }
+function saveTrending() { try { localStorage.setItem('ss12t', JSON.stringify(trending)); } catch(e){} }
 function load() {
-  try { const d=localStorage.getItem('ss11');  if(d) wallets  = JSON.parse(d); } catch(e){}
-  try { const d=localStorage.getItem('ss11t'); if(d) trending = JSON.parse(d); } catch(e){}
+  try { const d=localStorage.getItem('ss12');  if(d) wallets  = JSON.parse(d); } catch(e){}
+  try { const d=localStorage.getItem('ss12t'); if(d) trending = JSON.parse(d); } catch(e){}
 }
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -446,6 +446,18 @@ function setSmartPeriod(p) {
   });
   const lbl = document.getElementById('smPeriodLabel');
   if (lbl) lbl.textContent = p.toUpperCase();
+  // Swap active period data for all wallets that have multi-period data
+  wallets.forEach(w => {
+    const d = w._periods?.[p];
+    if (d) {
+      w.pnl      = d.pnl;
+      w.winrate  = d.winrate;
+      w.holdMins = d.holdMins;
+      w.trades   = d.trades;
+      w.tag = w.pnl>50000?'whale' : w.winrate>0.65?'smart' : w.trades>300?'bot' : '';
+    }
+  });
+  save();
   applyFilters();
 }
 
@@ -501,46 +513,71 @@ async function pf(url) {
 }
 
 // ── Helpers ───────────────────────────────────────────────────
+function parsePeriodData(w, p) {
+  const pnl     = parseFloat(w[`realized_profit_${p}`] ?? 0);
+  const winrate = parseFloat(w[`winrate_${p}`] ?? 0);
+  const holdMins= Math.round(parseFloat(w[`avg_holding_period_${p}`] ?? 0) / 60);
+  const trades  = parseInt(w[`buy_${p}`] ?? (p==='30d'?w.buy:0) ?? 0) + parseInt(w[`sell_${p}`] ?? (p==='30d'?w.sell:0) ?? 0);
+  return {pnl, winrate, holdMins, trades};
+}
 function parseEntry(w, period) {
   const addr = w.wallet_address || w.address; if (!addr) return null;
-  return {
-    addr,
-    pnl:      parseFloat(w[`realized_profit_${period}`] ?? 0),
-    winrate:  parseFloat(w[`winrate_${period}`] ?? 0),
-    holdMins: Math.round(parseFloat(w[`avg_holding_period_${period}`] ?? 0) / 60),
-    trades:   parseInt(w[`buy_${period}`] ?? w.buy ?? 0) + parseInt(w[`sell_${period}`] ?? w.sell ?? 0)
-  };
+  const d = parsePeriodData(w, period);
+  return {addr, ...d};
 }
-function mkWallet(addr, pnl, winrate, holdMins, trades, source) {
+function mkWallet(addr, pnl, winrate, holdMins, trades, source, periods) {
   return { id:addr, address:addr, label:'', source, pnl, winrate, holdMins, trades,
+    _periods: periods || null,
     tag: pnl>50000?'whale' : winrate>0.65?'smart' : trades>300?'bot' : '',
     lastActive: Date.now() };
 }
 
 // ── Leaderboards → wallets[] ──────────────────────────────────
 async function scrapeLeaderboards(minWr, minPnl, minTrades, seen) {
-  // Use the selected smartPeriod — only fetch those two endpoints
-  const p = smartPeriod;
+  // Always fetch all 6 endpoints (all 3 periods × PnL + WinRate)
+  // Each leaderboard response contains all period fields, so we store all 3 at once
   const eps = [
-    {url:`https://gmgn.ai/defi/quotation/v1/rank/sol/wallets/${p}?orderby=pnl&direction=desc&limit=200`,     label:`${p} PnL`,     period:p},
-    {url:`https://gmgn.ai/defi/quotation/v1/rank/sol/wallets/${p}?orderby=winrate&direction=desc&limit=200`, label:`${p} WinRate`, period:p},
+    {url:'https://gmgn.ai/defi/quotation/v1/rank/sol/wallets/1d?orderby=pnl&direction=desc&limit=200',     label:'1d PnL',     period:'1d'},
+    {url:'https://gmgn.ai/defi/quotation/v1/rank/sol/wallets/1d?orderby=winrate&direction=desc&limit=200', label:'1d WinRate', period:'1d'},
+    {url:'https://gmgn.ai/defi/quotation/v1/rank/sol/wallets/7d?orderby=pnl&direction=desc&limit=200',     label:'7d PnL',     period:'7d'},
+    {url:'https://gmgn.ai/defi/quotation/v1/rank/sol/wallets/7d?orderby=winrate&direction=desc&limit=200', label:'7d WinRate', period:'7d'},
+    {url:'https://gmgn.ai/defi/quotation/v1/rank/sol/wallets/30d?orderby=pnl&direction=desc&limit=200',    label:'30d PnL',    period:'30d'},
+    {url:'https://gmgn.ai/defi/quotation/v1/rank/sol/wallets/30d?orderby=winrate&direction=desc&limit=200',label:'30d WinRate',period:'30d'},
   ];
   let added = 0;
   for (let i=0; i<eps.length; i++) {
-    const {url,label,period} = eps[i];
+    const {url, label, period} = eps[i];
     try {
       log(`[Leaderboard] ${label}…`);
       const d = await pf(url);
       const list = d.data?.rank || d.rank || [];
       log(`[Leaderboard] ${label} — ${list.length} entries`);
       for (const w of list) {
-        const s = parseEntry(w, period);
-        if (!s || seen.has(s.addr)) continue;
-        if (s.winrate < minWr || s.pnl < minPnl || s.trades < minTrades) continue;
-        seen.add(s.addr);
-        wallets.unshift(mkWallet(s.addr, s.pnl, s.winrate, s.holdMins, s.trades, 'gmgn'));
+        const addr = w.wallet_address || w.address; if (!addr) continue;
+        // Use the threshold period (currently selected) to decide whether to include
+        const threshold = parsePeriodData(w, smartPeriod);
+        if (threshold.winrate < minWr || threshold.pnl < minPnl || threshold.trades < minTrades) continue;
+        if (seen.has(addr)) {
+          // Already added — update its period data with any new info from this endpoint
+          const existing = wallets.find(ww => ww.address === addr);
+          if (existing) {
+            const pd = parsePeriodData(w, period);
+            if (!existing._periods) existing._periods = {};
+            existing._periods[period] = pd;
+          }
+          continue;
+        }
+        seen.add(addr);
+        // Pre-store all 3 periods from this single response (all fields are present)
+        const periods = {
+          '1d':  parsePeriodData(w, '1d'),
+          '7d':  parsePeriodData(w, '7d'),
+          '30d': parsePeriodData(w, '30d'),
+        };
+        const active = periods[smartPeriod];
+        wallets.unshift(mkWallet(addr, active.pnl, active.winrate, active.holdMins, active.trades, 'gmgn', periods));
         added++;
-        log(`  ✓ ${s.addr.slice(0,8)}… $${Math.round(s.pnl).toLocaleString()} ${Math.round(s.winrate*100)}%WR`, 'ok');
+        log(`  ✓ ${addr.slice(0,8)}… $${Math.round(active.pnl).toLocaleString()} ${Math.round(active.winrate*100)}%WR`, 'ok');
       }
       save(); applyFilters(); badges();
       setProgress(5 + Math.round((i+1)/eps.length * 90));
@@ -891,7 +928,7 @@ function esc(s){return s.replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;
 function cp(addr){navigator.clipboard.writeText(addr).catch(()=>{});toast('Copied '+addr.slice(0,8)+'…');}
 
 // ── Boot ──────────────────────────────────────────────────────
-['solscope3','solscope4','solscope5','solscope6','solscope7','solscope8','solscope9','solscope10','solscope11'].forEach(k=>localStorage.removeItem(k));
+['solscope3','solscope4','solscope5','solscope6','solscope7','solscope8','solscope9','solscope10','solscope11','ss11','ss11t'].forEach(k=>localStorage.removeItem(k));
 load(); setSmartPeriod(smartPeriod); setCAPeriod(caPeriod); applyFilters(); renderTrending(); badges();
 </script>
 </body>
