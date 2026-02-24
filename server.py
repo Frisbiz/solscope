@@ -1,10 +1,15 @@
 import os
-import urllib.request
-import urllib.error
+import cloudscraper
 from flask import Flask, request, Response, send_file
 from urllib.parse import unquote
 
 app = Flask(__name__)
+
+# cloudscraper mimics a real browser and bypasses Cloudflare protection
+# This is what lets us fetch wallet stats for any address, not just leaderboard ones
+scraper = cloudscraper.create_scraper(
+    browser={'browser': 'chrome', 'platform': 'windows', 'mobile': False}
+)
 
 @app.route('/')
 def index():
@@ -17,23 +22,16 @@ def proxy():
         return {'error': 'invalid target'}, 400
 
     try:
-        req = urllib.request.Request(target, headers={
-            'User-Agent':      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        r = scraper.get(target, timeout=15, headers={
             'Referer':         'https://gmgn.ai/',
             'Accept':          'application/json',
             'Accept-Language': 'en-US,en;q=0.9',
         })
-        with urllib.request.urlopen(req, timeout=15) as r:
-            data = r.read()
-            content_type = r.headers.get('Content-Type', 'application/json')
-
-        return Response(data, status=200, content_type=content_type,
-                        headers={'Access-Control-Allow-Origin': '*'})
-
-    except urllib.error.HTTPError as e:
-        body = e.read()
-        return Response(body, status=e.code, content_type='application/json',
-                        headers={'Access-Control-Allow-Origin': '*'})
+        return Response(
+            r.content, status=r.status_code,
+            content_type=r.headers.get('Content-Type', 'application/json'),
+            headers={'Access-Control-Allow-Origin': '*'}
+        )
     except Exception as e:
         return {'error': str(e)}, 502
 
