@@ -588,18 +588,30 @@ async function caLookup() {
       const addr = buyers[i].wallet_address || buyers[i].address;
       if (!addr) continue;
       const entry = {address:addr, tokenCa:ca, source:'ca', pnl:0, winrate:0, holdMins:0, trades:0, tag:'', hasStats:false, lastActive:Date.now()};
-      try {
-        const sd = await pf(`https://gmgn.ai/defi/quotation/v1/smartmoney/sol/walletNew/${addr}?period=7d`);
-        const w = sd.data;
-        if (w) {
-          entry.pnl      = parseFloat(w.realized_profit ?? w.realized_profit_7d ?? 0);
-          entry.winrate  = parseFloat(w.winrate ?? w.winrate_7d ?? 0);
-          entry.holdMins = Math.round(parseFloat(w.avg_holding_period ?? w.avg_holding_period_7d ?? 0)/60);
-          entry.trades   = parseInt(w.buy_7d ?? w.buy ?? 0) + parseInt(w.sell_7d ?? w.sell ?? 0);
-          entry.hasStats = true;
-          entry.tag      = entry.pnl>50000?'whale' : entry.winrate>0.65?'smart' : entry.trades>300?'bot' : '';
-        }
-      } catch(_) {}
+      // Try multiple endpoints — not all wallets appear in each index
+      const statEps = [
+        `https://gmgn.ai/defi/quotation/v1/smartmoney/sol/walletNew/${addr}?period=7d`,
+        `https://gmgn.ai/defi/quotation/v1/wallet_stat/sol/${addr}?period=7d`,
+        `https://gmgn.ai/defi/quotation/v1/wallet_stat/sol/${addr}?period=30d`,
+      ];
+      for (const ep of statEps) {
+        try {
+          const sd = await pf(ep);
+          const w = sd.data?.wallet_stat ?? sd.data ?? null;
+          if (!w || typeof w !== 'object') continue;
+          const pnl     = parseFloat(w.realized_profit ?? w.realized_profit_7d ?? w.pnl ?? 0);
+          const winrate = parseFloat(w.winrate ?? w.winrate_7d ?? w.win_rate ?? 0);
+          const holdSec = parseFloat(w.avg_holding_period ?? w.avg_holding_period_7d ?? w.avg_holding_peroid ?? 0);
+          const trades  = parseInt(w.buy_7d ?? w.buy ?? w.total_count ?? 0) + parseInt(w.sell_7d ?? w.sell ?? 0);
+          if (winrate > 0 || Math.abs(pnl) > 0) {
+            entry.pnl = pnl; entry.winrate = winrate;
+            entry.holdMins = Math.round(holdSec / 60); entry.trades = trades;
+            entry.hasStats = true;
+            entry.tag = pnl>50000?'whale' : winrate>0.65?'smart' : trades>300?'bot' : '';
+            break;
+          }
+        } catch(_) {}
+      }
       caWallets.push(entry);
       if ((i+1)%5===0) { renderCA(); badges(); }
       await sleep(300);
