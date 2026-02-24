@@ -3,334 +3,392 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SolScope - Solana Wallet Intelligence</title>
+<title>SolScope — Solana Wallet Intelligence</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap');
 
-  :root {
-    --bg:#080b10; --surface:#0d1117; --surf2:#131922; --border:#1c2333; --border2:#243045;
-    --accent:#9945ff; --green:#14f195; --red:#f05c5c; --yellow:#ffd166; --orange:#f4845f; --blue:#60a5fa;
-    --text:#e2e8f0; --muted:#7a8a9e; --dim:#3d4f63;
-    --mono:'Space Mono',monospace; --sans:'DM Sans',sans-serif; --r:8px;
-  }
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-  body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden;}
-  body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
-    background:radial-gradient(ellipse 60% 40% at 80% 10%,rgba(153,69,255,.07) 0%,transparent 60%),
-               radial-gradient(ellipse 40% 30% at 10% 80%,rgba(20,241,149,.04) 0%,transparent 50%);}
-  .wrap{max-width:1400px;margin:0 auto;padding:0 24px;position:relative;z-index:1;}
+:root {
+--bg:#080b10; --surface:#0d1117; --surf2:#131922; --border:#1c2333; --border2:#243045;
+--accent:#9945ff; --green:#14f195; --red:#f05c5c; --yellow:#ffd166; --orange:#f4845f; --blue:#60a5fa;
+--text:#e2e8f0; --muted:#7a8a9e; --dim:#3d4f63;
+--mono:'Space Mono',monospace; --sans:'DM Sans',sans-serif; --r:8px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+background:radial-gradient(ellipse 60% 40% at 80% 10%,rgba(153,69,255,.07) 0%,transparent 60%),
+radial-gradient(ellipse 40% 30% at 10% 80%,rgba(20,241,149,.04) 0%,transparent 50%);}
+.wrap{max-width:1400px;margin:0 auto;padding:0 24px;position:relative;z-index:1;}
 
-  /* HEADER */
-  header{border-bottom:1px solid var(--border);padding:0;position:sticky;top:0;background:rgba(8,11,16,.95);backdrop-filter:blur(16px);z-index:100;}
-  .header-inner{display:flex;align-items:center;justify-content:space-between;gap:12px;height:56px;}
-  .logo{font-family:var(--mono);font-size:15px;display:flex;align-items:center;gap:10px;text-decoration:none;}
-  .logo-icon{width:30px;height:30px;flex-shrink:0;background:linear-gradient(135deg,var(--accent),var(--green));border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;}
-  .logo-text{color:var(--text);} .logo-text em{color:var(--green);font-style:normal;}
-  .header-right{display:flex;align-items:center;gap:8px;}
-  .status-pill{font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:20px;border:1px solid var(--border2);color:var(--dim);background:var(--surf2);}
-  .status-pill.running{border-color:var(--accent);color:var(--accent);background:rgba(153,69,255,.08);}
-  .status-pill.done{border-color:var(--green);color:var(--green);background:rgba(20,241,149,.08);}
-  .status-pill.error{border-color:var(--red);color:var(--red);background:rgba(240,92,92,.08);}
+/* HEADER */
+header{border-bottom:1px solid var(--border);padding:0;position:sticky;top:0;background:rgba(8,11,16,.95);backdrop-filter:blur(16px);z-index:100;}
+.header-inner{display:flex;align-items:center;justify-content:space-between;gap:12px;height:56px;}
+.logo{font-family:var(--mono);font-size:15px;display:flex;align-items:center;gap:10px;text-decoration:none;}
+.logo-icon{width:30px;height:30px;flex-shrink:0;background:linear-gradient(135deg,var(--accent),var(--green));border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;}
+.logo-text{color:var(--text);} .logo-text em{color:var(--green);font-style:normal;}
+.header-right{display:flex;align-items:center;gap:8px;}
+.status-pill{font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:20px;border:1px solid var(--border2);color:var(--dim);background:var(--surf2);}
+.status-pill.running{border-color:var(--accent);color:var(--accent);background:rgba(153,69,255,.08);}
+.status-pill.done{border-color:var(--green);color:var(--green);background:rgba(20,241,149,.08);}
+.status-pill.error{border-color:var(--red);color:var(--red);background:rgba(240,92,92,.08);}
 
-  /* BUTTONS */
-  .btn{border:none;border-radius:6px;padding:8px 16px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;}
-  .btn-primary{background:var(--accent);color:#fff;} .btn-primary:hover{background:#8535e6;} .btn-primary:disabled{opacity:.5;cursor:not-allowed;}
-  .btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--muted);} .btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
-  .btn-teal{background:rgba(20,241,149,.1);border:1px solid rgba(20,241,149,.25);color:var(--green);} .btn-teal:hover{background:rgba(20,241,149,.2);}
-  .btn-sm{padding:5px 10px;font-size:11px;}
+/* BUTTONS */
+.btn{border:none;border-radius:6px;padding:8px 16px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;}
+.btn-primary{background:var(--accent);color:#fff;} .btn-primary:hover{background:#8535e6;} .btn-primary:disabled{opacity:.5;cursor:not-allowed;}
+.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--muted);} .btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+.btn-teal{background:rgba(20,241,149,.1);border:1px solid rgba(20,241,149,.25);color:var(--green);} .btn-teal:hover{background:rgba(20,241,149,.2);}
+.btn-sm{padding:5px 10px;font-size:11px;}
 
-  main{padding:24px 0 60px;}
+main{padding:24px 0 60px;}
 
-  /* STATS */
-  .stats-row{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:20px;}
-  @media(max-width:900px){.stats-row{grid-template-columns:repeat(3,1fr);}}
-  .stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;position:relative;overflow:hidden;}
-  .stat::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px;}
-  .stat.c-purple::before{background:var(--accent);} .stat.c-green::before{background:var(--green);}
-  .stat.c-blue::before{background:var(--blue);}     .stat.c-yellow::before{background:var(--yellow);}
-  .stat.c-orange::before{background:var(--orange);}
-  .stat-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-family:var(--mono);margin-bottom:6px;}
-  .stat-val{font-size:20px;font-weight:700;}
-  .cv-purple{color:var(--accent);} .cv-green{color:var(--green);} .cv-blue{color:var(--blue);}
-  .cv-yellow{color:var(--yellow);} .cv-orange{color:var(--orange);}
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:20px;}
+@media(max-width:900px){.stats-row{grid-template-columns:repeat(3,1fr);}}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;position:relative;overflow:hidden;}
+.stat::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px;}
+.stat.c-purple::before{background:var(--accent);} .stat.c-green::before{background:var(--green);}
+.stat.c-blue::before{background:var(--blue);}     .stat.c-yellow::before{background:var(--yellow);}
+.stat.c-orange::before{background:var(--orange);}
+.stat-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-family:var(--mono);margin-bottom:6px;}
+.stat-val{font-size:20px;font-weight:700;font-family:var(--mono);}
+.cv-purple{color:var(--accent);} .cv-green{color:var(--green);} .cv-blue{color:var(--blue);}
+.cv-yellow{color:var(--yellow);} .cv-orange{color:var(--orange);} .cv-red{color:var(--red);}
 
-  /* SECTION */
-  .section{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-top:12px;}
-  .section h2{font-size:14px;letter-spacing:.3px;margin-bottom:10px;font-family:var(--mono);color:var(--text);}
-  .subnote{font-size:11px;color:var(--muted);margin:8px 0 0;line-height:1.4;}
-  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+/* TABS */
+.tabs{display:flex;gap:2px;margin-bottom:20px;background:var(--surf2);border:1px solid var(--border);border-radius:var(--r);padding:4px;width:fit-content;}
+.tab{font-family:var(--mono);font-size:11px;padding:7px 18px;border-radius:6px;border:none;background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:7px;}
+.tab:hover{color:var(--text);}
+.tab.active{background:var(--surface);color:var(--text);border:1px solid var(--border2);box-shadow:0 1px 4px rgba(0,0,0,.3);}
+.tab-pane{display:none;} .tab-pane.active{display:block;}
+.tab-badge{background:rgba(153,69,255,.15);border:1px solid rgba(153,69,255,.2);color:var(--accent);border-radius:10px;font-size:9px;padding:1px 6px;}
+.tab-badge.orange{background:rgba(244,132,95,.12);border-color:rgba(244,132,95,.25);color:var(--orange);}
+.tab-badge.blue{background:rgba(96,165,250,.12);border-color:rgba(96,165,250,.25);color:var(--blue);}
 
-  /* INPUTS */
-  .fi{background:var(--surf2);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:11px;padding:5px 9px;outline:none;font-family:var(--mono);transition:border-color .2s;}
-  .fi::placeholder{color:var(--dim);} .fi:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(153,69,255,.1);}
-  .fi-xs{width:52px;} .fi-sm{width:70px;} .fi-md{width:90px;} .fi-lg{width:200px;}
-  .sel{background:var(--surf2);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:11px;padding:5px 9px;outline:none;cursor:pointer;font-family:var(--mono);transition:border-color .2s;}
-  .sel:focus{border-color:var(--accent);}
+/* INPUTS */
+.fi{background:var(--surf2);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:11px;padding:5px 9px;outline:none;font-family:var(--mono);transition:border-color .2s;}
+.fi::placeholder{color:var(--dim);} .fi:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(153,69,255,.1);}
+.fi-xs{width:52px;} .fi-sm{width:70px;} .fi-md{width:90px;} .fi-lg{width:200px;}
+.sel{background:var(--surf2);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:11px;padding:5px 9px;outline:none;cursor:pointer;font-family:var(--mono);transition:border-color .2s;}
+.sel:focus{border-color:var(--accent);}
 
-  /* SCRAPE CONFIG */
-  .scrape-config{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;margin-bottom:12px;}
-  .cfg-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-family:var(--mono);}
-  .cfg-sep{width:1px;height:18px;background:var(--border);margin:0 6px;}
-  .cb-label{font-size:11px;color:var(--text);display:flex;align-items:center;gap:6px;}
-  input[type="checkbox"]{accent-color:var(--accent);}
+/* SCRAPE CONFIG */
+.scrape-config{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;margin-bottom:12px;}
+.cfg-label{font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:var(--dim);font-family:var(--mono);font-weight:700;}
+.cfg-sep{width:1px;height:20px;background:var(--border2);margin:0 4px;flex-shrink:0;}
+.cb-label{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text);cursor:pointer;user-select:none;font-family:var(--mono);}
+.cb-label input[type=checkbox]{accent-color:var(--accent);width:13px;height:13px;cursor:pointer;}
 
-  /* TABS */
-  .tabs{display:flex;gap:8px;margin:14px 0 12px;}
-  .tab{flex:0 0 auto;background:transparent;border:1px solid var(--border2);color:var(--muted);padding:7px 12px;border-radius:7px;font-size:12px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:8px;}
-  .tab:hover{border-color:var(--accent);color:var(--accent);}
-  .tab.active{background:rgba(153,69,255,.12);border-color:var(--accent);color:var(--accent);}
-  .tab-badge{font-family:var(--mono);font-size:10px;border:1px solid var(--border2);padding:1px 8px;border-radius:14px;color:var(--muted);}
-  .tab-badge.orange{border-color:rgba(244,132,95,.35);color:var(--orange);}
-  .tab-badge.blue{border-color:rgba(96,165,250,.35);color:var(--blue);}
-  .tab-pane{display:none;}
-  .tab-pane.active{display:block;}
+/* CA PANEL */
+.ca-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;margin-bottom:12px;}
+.ca-panel-title{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px;}
+.ca-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;}
+.ca-input{flex:1;min-width:280px;max-width:500px;background:var(--surf2);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:12px;padding:9px 14px;outline:none;transition:border-color .2s;}
+.ca-input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(153,69,255,.1);} .ca-input::placeholder{color:var(--dim);}
+.ca-hint{font-size:11px;color:var(--dim);font-family:var(--mono);}
+.ca-banner{display:none;background:rgba(20,241,149,.05);border:1px solid rgba(20,241,149,.15);border-radius:6px;padding:10px 14px;margin-top:10px;font-family:var(--mono);font-size:11px;color:var(--green);}
+.ca-banner.err{background:rgba(240,92,92,.05);border-color:rgba(240,92,92,.15);color:var(--red);}
 
-  /* LOG PANEL */
-  .log-panel{display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:10px;font-family:var(--mono);font-size:11px;color:var(--muted);max-height:160px;overflow:auto;line-height:1.5;}
-  .log-ok{color:var(--green);} .log-err{color:var(--red);} .log-inf{color:var(--blue);}
+/* TRENDING NOTICE */
+.trending-notice{display:flex;align-items:flex-start;gap:10px;background:rgba(244,132,95,.06);border:1px solid rgba(244,132,95,.2);border-radius:var(--r);padding:12px 16px;margin-bottom:14px;}
+.tn-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+.tn-text{font-size:12px;color:var(--muted);line-height:1.6;}
+.tn-text strong{color:var(--orange);}
 
-  /* PROGRESS */
-  .progress-bar-wrap{display:none;height:6px;border-radius:99px;background:rgba(36,48,69,.5);overflow:hidden;margin-bottom:14px;}
-  .progress-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--green));width:0%;transition:width .2s;}
+/* LOG */
+.log-panel{display:none;background:#060a0f;border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;font-family:var(--mono);font-size:11px;line-height:1.7;max-height:180px;overflow-y:auto;margin-bottom:12px;scrollbar-width:thin;scrollbar-color:var(--border2) transparent;}
+.log-line{color:var(--muted);} .log-line.ok{color:var(--green);} .log-line.err{color:var(--red);} .log-line.inf{color:var(--blue);}
+.progress-bar-wrap{display:none;height:3px;background:var(--border);border-radius:2px;margin-bottom:14px;overflow:hidden;}
+.progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:2px;transition:width .3s;}
 
-  /* TABLE */
-  table{width:100%;border-collapse:separate;border-spacing:0;}
-  th,td{padding:10px 10px;border-bottom:1px solid var(--border);font-size:12px;vertical-align:middle;}
-  th{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);cursor:pointer;user-select:none;white-space:nowrap;}
-  tr:hover td{background:rgba(19,25,34,.55);}
-  .mono{font-family:var(--mono);}
-  .pill{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border-radius:99px;font-size:11px;font-family:var(--mono);border:1px solid var(--border2);color:var(--muted);background:rgba(19,25,34,.6);}
-  .pill.green{border-color:rgba(20,241,149,.25);color:var(--green);background:rgba(20,241,149,.08);}
-  .pill.red{border-color:rgba(240,92,92,.25);color:var(--red);background:rgba(240,92,92,.08);}
-  .pill.blue{border-color:rgba(96,165,250,.25);color:var(--blue);background:rgba(96,165,250,.08);}
-  .tag{font-size:10px;padding:3px 7px;border-radius:6px;border:1px solid var(--border2);font-family:var(--mono);color:var(--muted);display:inline-block;}
-  .tag.whale{border-color:rgba(20,241,149,.28);color:var(--green);background:rgba(20,241,149,.06);}
-  .tag.smart{border-color:rgba(153,69,255,.28);color:var(--accent);background:rgba(153,69,255,.06);}
-  .tag.bot{border-color:rgba(244,132,95,.28);color:var(--orange);background:rgba(244,132,95,.06);}
-  .actions{display:flex;gap:6px;justify-content:flex-end;}
-  .right{text-align:right;}
-  .muted{color:var(--muted);}
-  .dim{color:var(--dim);}
-  .nowrap{white-space:nowrap;}
+/* TOOLBAR */
+.toolbar{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.tb-sep{width:1px;height:22px;background:var(--border2);margin:0 2px;flex-shrink:0;}
+.tb-lbl{font-size:9px;color:var(--dim);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;white-space:nowrap;}
+.sort-btn{background:var(--surface);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:11px;padding:5px 11px;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .12s;font-family:var(--mono);white-space:nowrap;user-select:none;}
+.sort-btn:hover{border-color:var(--accent);color:var(--text);} .sort-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(153,69,255,.08);}
+.filter-toggle{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:11px;padding:5px 11px;cursor:pointer;font-family:var(--mono);white-space:nowrap;transition:all .12s;}
+.filter-toggle:hover,.filter-toggle.on{border-color:var(--accent);color:var(--accent);background:rgba(153,69,255,.08);}
+.filter-dot{color:var(--accent);font-size:8px;display:none;} .filter-dot.on{display:inline;}
+.count-badge{background:rgba(153,69,255,.1);border:1px solid rgba(153,69,255,.2);border-radius:20px;padding:3px 12px;font-family:var(--mono);font-size:11px;color:var(--accent);margin-left:auto;}
 
-  /* TRENDING */
-  .trend-note{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.45;}
-  .trend-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px;}
-  @media(max-width:900px){.trend-grid{grid-template-columns:1fr;}}
-  .trend-card{background:var(--surf2);border:1px solid var(--border);border-radius:var(--r);padding:12px;}
-  .trend-addr{font-family:var(--mono);font-size:12px;color:var(--text);}
-  .trend-meta{font-size:10px;color:var(--muted);margin-top:6px;display:flex;justify-content:space-between;gap:10px;}
-  .trend-actions{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;}
+/* FILTER PANEL */
+.filter-panel{display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;margin-bottom:12px;animation:fadeIn .15s ease;}
+.filter-panel.open{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.filter-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:14px;}
+@media(max-width:900px){.filter-grid{grid-template-columns:repeat(2,1fr);}}
+.fg-title{font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--mono);font-weight:700;margin-bottom:10px;}
+.fg-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.fg-lbl{font-size:10px;color:var(--dim);font-family:var(--mono);width:30px;flex-shrink:0;}
+.filter-footer{display:flex;align-items:center;gap:10px;padding-top:10px;border-top:1px solid var(--border);}
+.filter-summary{font-size:11px;color:var(--muted);font-family:var(--mono);flex:1;}
 
-  /* CA LOOKUP */
-  .ca-banner{display:none;margin:10px 0 0;background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.22);color:var(--blue);padding:10px 12px;border-radius:var(--r);font-size:11px;font-family:var(--mono);}
-  .ca-banner.err{background:rgba(240,92,92,.08);border-color:rgba(240,92,92,.22);color:var(--red);}
-  .ca-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:12px;}
-  @media(max-width:900px){.ca-grid{grid-template-columns:1fr;}}
-  .ca-card{background:var(--surf2);border:1px solid var(--border);border-radius:var(--r);padding:14px;}
-  .ca-title{display:flex;align-items:center;justify-content:space-between;gap:10px;}
-  .ca-ca{font-family:var(--mono);font-size:12px;color:var(--text);}
-  .ca-addr{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:8px;word-break:break-all;}
-  .ca-stats{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;}
-  .mini{font-size:10px;color:var(--muted);font-family:var(--mono);}
+/* TABLE */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.col-sm  {grid-template-columns:44px 1fr 90px 130px 140px 130px 80px 110px 130px;}
+.col-tr  {grid-template-columns:44px 1fr 110px 220px 130px;}
+.thead{display:grid;background:var(--surf2);border-bottom:1px solid var(--border);}
+.th{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);padding:11px 12px;cursor:pointer;user-select:none;display:flex;align-items:center;gap:3px;transition:color .12s;border-right:1px solid var(--border);white-space:nowrap;}
+.th:last-child{border-right:none;} .th:hover{color:var(--muted);} .th.sorted{color:var(--accent);}
+.th.ns{cursor:default;} .th.ns:hover{color:var(--dim);}
+.t-body{overflow-y:auto;max-height:calc(100vh - 340px);min-height:260px;}
+.wrow{display:grid;border-bottom:1px solid var(--border);transition:background .08s;}
+.wrow:last-child{border-bottom:none;} .wrow:hover{background:rgba(153,69,255,.04);}
+.td{padding:10px 12px;font-size:12px;border-right:1px solid var(--border);display:flex;align-items:center;overflow:hidden;}
+.td:last-child{border-right:none;}
+.td-num{color:var(--dim);font-family:var(--mono);font-size:11px;}
+.w-info{flex-direction:column;align-items:flex-start;gap:3px;}
+.w-addr{font-family:var(--mono);font-size:11px;color:var(--green);cursor:pointer;transition:color .1s;}
+.w-addr:hover{color:#fff;}
+.w-meta{display:flex;align-items:center;gap:5px;}
+.w-lbl{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;}
+.src-badge{font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;flex-shrink:0;}
+.src-gmgn    {background:rgba(20,241,149,.1); color:var(--green);  border:1px solid rgba(20,241,149,.2);}
+.src-trending{background:rgba(244,132,95,.1); color:var(--orange); border:1px solid rgba(244,132,95,.2);}
+.src-ca      {background:rgba(96,165,250,.1); color:var(--blue);   border:1px solid rgba(96,165,250,.2);}
+.tag{display:inline-block;font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:3px;font-weight:700;letter-spacing:.3px;white-space:nowrap;}
+.t-whale{background:rgba(255,209,102,.12);border:1px solid rgba(255,209,102,.25);color:var(--yellow);}
+.t-bot  {background:rgba(20,241,149,.12); border:1px solid rgba(20,241,149,.25); color:var(--green);}
+.t-smart{background:rgba(153,69,255,.12); border:1px solid rgba(153,69,255,.25); color:var(--accent);}
+.pnl-p{color:var(--green);font-family:var(--mono);font-size:12px;font-weight:700;}
+.pnl-n{color:var(--red);  font-family:var(--mono);font-size:12px;font-weight:700;}
+.wr-wrap{flex-direction:column;align-items:flex-start;gap:4px;}
+.wr-pct{font-family:var(--mono);font-size:12px;font-weight:700;}
+.wr-bar{width:80px;height:3px;border-radius:2px;background:var(--border2);overflow:hidden;}
+.wr-fill{height:100%;border-radius:2px;}
+.hold-wrap{flex-direction:column;align-items:flex-start;gap:1px;}
+.hold-v{font-family:var(--mono);font-size:13px;} .hold-u{font-size:10px;color:var(--dim);}
+.trd{font-family:var(--mono);font-size:12px;color:var(--muted);}
+.acts{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;}
+.btn-view{display:inline-flex;align-items:center;gap:3px;padding:4px 8px;border-radius:4px;font-size:10px;font-weight:700;background:rgba(20,241,149,.1);color:var(--green);border:1px solid rgba(20,241,149,.25);text-decoration:none;white-space:nowrap;font-family:var(--mono);transition:background .15s;letter-spacing:.3px;}
+.btn-view:hover{background:rgba(20,241,149,.22);}
+.btn-del{display:inline-flex;align-items:center;background:transparent;border:1px solid rgba(240,92,92,.25);color:var(--red);font-size:13px;line-height:1;padding:3px 7px;border-radius:4px;cursor:pointer;transition:all .12s;flex-shrink:0;}
+.btn-del:hover{background:rgba(240,92,92,.12);}
 
-  /* TOAST */
-  .toast{position:fixed;right:22px;bottom:22px;background:rgba(13,17,23,.96);border:1px solid var(--border);color:var(--text);
-         padding:10px 12px;border-radius:10px;font-size:12px;box-shadow:0 12px 35px rgba(0,0,0,.45);opacity:0;transform:translateY(12px);
-         transition:opacity .25s, transform .25s;z-index:999;}
-  .toast.show{opacity:1;transform:translateY(0);}
+/* EMPTY */
+.empty{text-align:center;padding:60px 20px;}
+.empty-icon{font-size:28px;margin-bottom:10px;color:var(--dim);}
+.empty-text{font-family:var(--mono);font-size:12px;color:var(--dim);line-height:2;}
 
-  /* MISC */
-  .help{font-size:11px;color:var(--muted);line-height:1.45;margin-top:12px;}
-  .sep{height:1px;background:var(--border);margin:14px 0;}
-  .btn-icon{width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;border-radius:5px;border:1px solid var(--border2);color:var(--muted);}
-  .btn-icon:hover{border-color:var(--accent);color:var(--accent);}
-  .danger{color:var(--red);}
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surf2);border:1px solid var(--border2);color:var(--text);font-family:var(--mono);font-size:12px;padding:10px 20px;border-radius:20px;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;z-index:999;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
-  @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-  .spinning{display:inline-block;animation:spin 1s linear infinite;}
-
-  /* PERIOD TABS (1D / 7D / 30D) */
-  .period-tabs{display:flex;gap:8px;margin:12px 0 14px;}
-  .period-btn{background:var(--surface);border:1px solid var(--border2);color:var(--muted);padding:6px 14px;border-radius:6px;font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .15s;}
-  .period-btn:hover{border-color:var(--accent);color:var(--accent);}
-  .period-btn.active{background:rgba(153,69,255,.15);border-color:var(--accent);color:var(--accent);}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinning{display:inline-block;animation:spin 1s linear infinite;}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="wrap">
-    <div class="header-inner">
-      <a class="logo" href="#">
-        <div class="logo-icon">◎</div>
-        <span class="logo-text">Sol<em>Scope</em></span>
-      </a>
-      <div class="header-right">
-        <span class="status-pill" id="statusPill">◎ Idle</span>
-        <button class="btn btn-primary" id="scrapeBtn" onclick="startScrape()">▶ Auto-Discover</button>
-      </div>
-    </div>
-  </div>
+<div class="wrap">
+<div class="header-inner">
+<a class="logo" href="#">
+<div class="logo-icon">◎</div>
+<span class="logo-text">Sol<em>Scope</em></span>
+</a>
+<div class="header-right">
+<span class="status-pill" id="statusPill">◎ Idle</span>
+<button class="btn btn-primary" id="scrapeBtn" onclick="startScrape()">▶ Auto-Discover</button>
+</div>
+</div>
+</div>
 </header>
 
 <main>
 <div class="wrap">
 
-  <!-- Stats (smart money only - trending & CA never affect this) -->
-  <div class="stats-row">
-    <div class="stat c-purple"><div class="stat-label">Wallets Tracked</div><div class="stat-val cv-purple" id="s-count">0</div></div>
-    <div class="stat c-green"> <div class="stat-label">Profitable</div>     <div class="stat-val cv-green"  id="s-prof">0</div></div>
-    <div class="stat c-blue">  <div class="stat-label">Whales</div>         <div class="stat-val cv-blue"   id="s-whale">0</div></div>
-    <div class="stat c-yellow"><div class="stat-label">Avg Win Rate</div>   <div class="stat-val cv-yellow" id="s-wr">-</div></div>
-    <div class="stat c-orange"><div class="stat-label">Total PnL</div>      <div class="stat-val cv-orange" id="s-pnl">-</div></div>
-    <div class="stat c-orange"><div class="stat-label">Shown / Total</div> <div class="stat-val cv-orange"  id="s-shown">-</div></div>
-  </div>
+<!-- Stats (smart money only — trending & CA never affect this) -->
+<div class="stats-row">
+<div class="stat c-purple"><div class="stat-label">Wallets Tracked</div><div class="stat-val cv-purple" id="s-count">0</div></div>
+<div class="stat c-green"> <div class="stat-label">Avg Win Rate</div>  <div class="stat-val cv-green"  id="s-wr">—</div></div>
+<div class="stat c-green"> <div class="stat-label">Total PnL</div>     <div class="stat-val"            id="s-pnl">—</div></div>
+<div class="stat c-blue">  <div class="stat-label">Avg Hold Time</div> <div class="stat-val cv-blue"    id="s-hold">—</div></div>
+<div class="stat c-yellow"><div class="stat-label">Profitable</div>    <div class="stat-val cv-yellow"  id="s-prof">—</div></div>
+<div class="stat c-orange"><div class="stat-label">Shown / Total</div> <div class="stat-val cv-orange"  id="s-shown">—</div></div>
+</div>
 
-  <!-- Period (Smart Money stats) -->
-  <div class="period-tabs" id="periodTabs">
-    <button class="period-btn" data-period="1d">1D</button>
-    <button class="period-btn active" data-period="7d">7D</button>
-    <button class="period-btn" data-period="30d">30D</button>
-  </div>
+<!-- Tabs -->
+<div class="tabs">
+<button class="tab active" onclick="switchTab('smart')"    id="tab-smart">🧠 Smart Money <span class="tab-badge" id="tb-smart">0</span></button>
+<button class="tab"        onclick="switchTab('trending')" id="tab-trending">🔥 Trending <span class="tab-badge orange" id="tb-trending">0</span></button>
+<button class="tab"        onclick="switchTab('ca')"       id="tab-ca">🔍 CA Lookup <span class="tab-badge blue" id="tb-ca">0</span></button>
+</div>
 
-  <!-- Tabs -->
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('smart')"    id="tab-smart">🧠 Smart Money <span class="tab-badge" id="tb-smart">0</span></button>
-    <button class="tab"        onclick="switchTab('trending')" id="tab-trending">🔥 Trending <span class="tab-badge orange" id="tb-trending">0</span></button>
-    <button class="tab"        onclick="switchTab('ca')"       id="tab-ca">🔍 CA Lookup <span class="tab-badge blue" id="tb-ca">0</span></button>
-  </div>
+<!-- Shared log + progress -->
+<div class="log-panel" id="logPanel"></div>
+<div class="progress-bar-wrap" id="progressWrap"><div class="progress-bar-fill" id="progressFill" style="width:0%"></div></div>
 
-  <!-- Shared log + progress -->
-  <div class="log-panel" id="logPanel"></div>
-  <div class="progress-bar-wrap" id="progressWrap"><div class="progress-bar-fill" id="progressFill" style="width:0%"></div></div>
+<!-- ══ SMART MONEY ══ -->
+<div class="tab-pane active" id="pane-smart">
+<div class="scrape-config">
+<span class="cfg-label">Sources</span>
+<label class="cb-label"><input type="checkbox" id="cfgGmgn" checked> GMGN Leaderboards</label>
+<label class="cb-label"><input type="checkbox" id="cfgTrending" checked> Trending Buyers</label>
+<div class="cfg-sep"></div>
+<span class="cfg-label">Min Threshold</span>
+<span style="font-size:11px;color:var(--muted)">WR</span>
+<input class="fi fi-xs" id="cfgMinWr" value="0" />
+<span style="font-size:11px;color:var(--dim)">%</span>
+<span style="font-size:11px;color:var(--muted)">PnL $</span>
+<input class="fi fi-sm" id="cfgMinPnl" value="0" />
+<span style="font-size:11px;color:var(--muted)">Trades</span>
+<input class="fi fi-xs" id="cfgMinTrades" value="5" />
+</div>
 
-  <!-- ══ SMART MONEY ══ -->
-  <div class="tab-pane active" id="pane-smart">
-    <div class="scrape-config">
-      <span class="cfg-label">Sources</span>
-      <label class="cb-label"><input type="checkbox" id="cfgGmgn" checked> GMGN Leaderboards</label>
-      <label class="cb-label"><input type="checkbox" id="cfgTrending" checked> Trending Buyers</label>
-      <div class="cfg-sep"></div>
-      <span class="cfg-label">Min Threshold</span>
-      <span style="font-size:11px;color:var(--muted)">WR</span>
-      <input class="fi fi-xs" id="cfgMinWr" value="0" />
-      <span style="font-size:11px;color:var(--muted)">%</span>
-      <span style="font-size:11px;color:var(--muted)">PnL</span>
-      <input class="fi fi-md" id="cfgMinPnl" value="0" />
-      <span style="font-size:11px;color:var(--muted)">Trades</span>
-      <input class="fi fi-sm" id="cfgMinTrades" value="0" />
-      <div class="cfg-sep"></div>
+<div class="toolbar">
+<span class="tb-lbl">Sort</span>
+<button class="sort-btn active" id="sb-pnl"      onclick="setSort('pnl')">PnL <span id="a-pnl">↓</span></button>
+<button class="sort-btn"        id="sb-winrate"  onclick="setSort('winrate')">Win Rate <span id="a-wr">↓</span></button>
+<button class="sort-btn"        id="sb-holdtime" onclick="setSort('holdtime')">Hold Time <span id="a-ht">↓</span></button>
+<button class="sort-btn"        id="sb-trades"   onclick="setSort('trades')">Trades <span id="a-tr">↓</span></button>
+<div class="tb-sep"></div>
+<input class="fi fi-lg" id="fSearch" placeholder="search address or label…" oninput="applyFilters()" />
+<select class="sel" id="fTag" onchange="applyFilters()">
+<option value="">All Tags</option>
+<option value="whale">🐋 Whale</option>
+<option value="smart">🧠 Smart</option>
+<option value="bot">🤖 Bot</option>
+</select>
+<div class="tb-sep"></div>
+<button class="filter-toggle" id="filterBtn" onclick="toggleFilters()">⚙ Filters <span class="filter-dot" id="filterDot">●</span></button>
+<span class="count-badge" id="cBadge">0 wallets</span>
+<button class="btn btn-ghost btn-sm" onclick="clearAll()">Clear All</button>
+</div>
 
-      <span class="cfg-label">Filter</span>
-      <select class="sel" id="f-tag" onchange="applyFilters()">
-        <option value="all">All Tags</option>
-        <option value="whale">Whale</option>
-        <option value="smart">Smart</option>
-        <option value="bot">Bot</option>
-        <option value="none">No Tag</option>
-      </select>
+<div class="filter-panel" id="filterPanel">
+<div class="filter-grid">
+<div>
+<div class="fg-title">💰 PnL (USD)</div>
+<div class="fg-row"><span class="fg-lbl">Min $</span><input class="fi fi-sm" id="fPnlMin" placeholder="e.g. 500" oninput="applyFilters()" /></div>
+<div class="fg-row"><span class="fg-lbl">Max $</span><input class="fi fi-sm" id="fPnlMax" placeholder="no limit" oninput="applyFilters()" /></div>
+</div>
+<div>
+<div class="fg-title">🎯 Win Rate</div>
+<div class="fg-row"><span class="fg-lbl">Min %</span><input class="fi fi-sm" id="fWrMin" placeholder="e.g. 50" oninput="applyFilters()" /></div>
+<div class="fg-row"><span class="fg-lbl">Max %</span><input class="fi fi-sm" id="fWrMax" placeholder="no limit" oninput="applyFilters()" /></div>
+</div>
+<div>
+<div class="fg-title">⏱ Hold Time (mins)</div>
+<div class="fg-row"><span class="fg-lbl">Min</span><input class="fi fi-sm" id="fHoldMin" placeholder="e.g. 30" oninput="applyFilters()" /></div>
+<div class="fg-row"><span class="fg-lbl">Max</span><input class="fi fi-sm" id="fHoldMax" placeholder="no limit" oninput="applyFilters()" /></div>
+</div>
+<div>
+<div class="fg-title">🔁 Trades</div>
+<div class="fg-row"><span class="fg-lbl">Min</span><input class="fi fi-sm" id="fTradesMin" placeholder="e.g. 10" oninput="applyFilters()" /></div>
+<div class="fg-row"><span class="fg-lbl">Max</span><input class="fi fi-sm" id="fTradesMax" placeholder="no limit" oninput="applyFilters()" /></div>
+</div>
+</div>
+<div class="filter-footer">
+<button class="btn btn-ghost btn-sm" onclick="resetFilters()">Reset All</button>
+<span class="filter-summary" id="filterSummary"></span>
+</div>
+</div>
 
-      <span class="cfg-label">Sort</span>
-      <select class="sel" id="f-sort" onchange="setSort(this.value)">
-        <option value="pnl">PnL</option>
-        <option value="winrate">Win Rate</option>
-        <option value="trades">Trades</option>
-        <option value="hold">Hold</option>
-        <option value="active">Active</option>
-      </select>
+<div class="table-wrap">
+<div class="thead col-sm">
+<div class="th ns">#</div>
+<div class="th ns">Wallet</div>
+<div class="th ns">Tag</div>
+<div class="th sorted" id="th-pnl"      onclick="setSort('pnl')">Realized PnL <span id="ta-pnl">↓</span></div>
+<div class="th"         id="th-winrate"  onclick="setSort('winrate')">Win Rate <span id="ta-wr">↓</span></div>
+<div class="th"         id="th-holdtime" onclick="setSort('holdtime')">Avg Hold <span id="ta-ht">↓</span></div>
+<div class="th"         id="th-trades"   onclick="setSort('trades')">Trades <span id="ta-tr">↓</span></div>
+<div class="th ns">Last Active</div>
+<div class="th ns">Actions</div>
+</div>
+<div class="t-body" id="tableBody"></div>
+<div class="empty" id="emptyMsg">
+<div class="empty-icon">◎</div>
+<div class="empty-text">No wallets yet.<br>Hit <b style="color:var(--green)">▶ Auto-Discover</b> to start.</div>
+</div>
+</div>
+</div>
 
-      <button class="btn btn-ghost btn-sm" onclick="toggleSortDir()">⇅</button>
+<!-- ══ TRENDING ══ -->
+<div class="tab-pane" id="pane-trending">
+<div class="trending-notice">
+<div class="tn-icon">⚠️</div>
+<div class="tn-text">
+<strong>Addresses only — no stats.</strong> GMGN's trending buyer endpoint returns wallet addresses and tags but no PnL, win rate, or hold time. Kept here separately so Smart Money stats stay accurate. Click GMGN ↗ to view any wallet's full profile.
+</div>
+</div>
+<div class="toolbar">
+<input class="fi fi-lg" id="tSearch" placeholder="search address…" oninput="renderTrending()" />
+<span class="count-badge" id="tBadge">0 wallets</span>
+<button class="btn btn-ghost btn-sm" onclick="clearTrending()">Clear</button>
+</div>
+<div class="table-wrap">
+<div class="thead col-tr">
+<div class="th ns">#</div>
+<div class="th ns">Wallet</div>
+<div class="th ns">From Token</div>
+<div class="th ns">GMGN Tags</div>
+<div class="th ns">Actions</div>
+</div>
+<div class="t-body" id="trendingBody"></div>
+<div class="empty" id="trendingEmpty">
+<div class="empty-icon">🔥</div>
+<div class="empty-text">No trending wallets yet.<br>Hit <b style="color:var(--green)">▶ Auto-Discover</b> to fetch.</div>
+</div>
+</div>
+</div>
 
-      <div style="flex:1"></div>
-      <button class="btn btn-ghost btn-sm" onclick="exportJSON()">Export</button>
-      <button class="btn btn-ghost btn-sm" onclick="importJSON()">Import</button>
-      <button class="btn btn-ghost btn-sm danger" onclick="clearAll()">Clear</button>
-    </div>
-
-    <div class="section">
-      <h2>Tracked Wallets</h2>
-
-      <div class="row" style="justify-content:space-between;margin-bottom:10px;">
-        <div class="row">
-          <input class="fi fi-lg" id="q" placeholder="Search address..." oninput="applyFilters()">
-          <button class="btn btn-ghost btn-sm" onclick="applyFilters()">Search</button>
-        </div>
-
-        <div class="row">
-          <span class="pill">Sort: <span class="mono" id="sortLabel">PnL</span></span>
-          <span class="pill">Dir: <span class="mono" id="dirLabel">DESC</span></span>
-          <span class="pill">Shown: <span class="mono" id="shownLabel">0</span></span>
-        </div>
-      </div>
-
-      <table>
-        <thead>
-          <tr>
-            <th onclick="setSort('tag')">Tag</th>
-            <th class="mono">Address</th>
-            <th class="right" onclick="setSort('pnl')">PnL</th>
-            <th class="right" onclick="setSort('winrate')">Win Rate</th>
-            <th class="right" onclick="setSort('hold')">Avg Hold</th>
-            <th class="right" onclick="setSort('trades')">Trades</th>
-            <th class="right" onclick="setSort('active')">Last Active</th>
-            <th class="right">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="walletBody"></tbody>
-      </table>
-
-      <div class="help">
-        Notes:
-        <div class="subnote">- Smart Money wallets store full stats (PnL + WR + trades + hold). Period tabs re-fetch walletNew per wallet for the selected window.</div>
-        <div class="subnote">- Trending list stores addresses only. Use "Track" to add a trending wallet to Smart Money tracking.</div>
-        <div class="subnote">- CA Lookup is per-session and does not persist. It uses the same period selection as Smart Money.</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══ TRENDING ══ -->
-  <div class="tab-pane" id="pane-trending">
-    <div class="section">
-      <h2>Trending Buyers (address only)</h2>
-      <div class="row" style="margin-bottom:10px;">
-        <button class="btn btn-primary" onclick="refreshTrending()">↻ Refresh Trending</button>
-        <button class="btn btn-ghost" onclick="clearTrending()">Clear</button>
-      </div>
-      <div class="trend-grid" id="trendGrid"></div>
-      <div class="trend-note">
-        Trending wallets are fetched from GMGN "trending buyers" endpoint. These are addresses only.
-        If you want full stats, click "Track" on a card.
-      </div>
-    </div>
-  </div>
-
-  <!-- ══ CA LOOKUP ══ -->
-  <div class="tab-pane" id="pane-ca">
-    <div class="section">
-      <h2>CA Lookup</h2>
-      <div class="row">
-        <input class="fi fi-lg" id="caIn" placeholder="Paste token CA(s), space/newline separated" />
-        <button class="btn btn-primary" id="caBtn" onclick="fetchCA()">Fetch Traders</button>
-        <button class="btn btn-ghost" onclick="clearCA()">Clear</button>
-      </div>
-      <div class="ca-banner" id="caBanner"></div>
-      <div class="ca-grid" id="caGrid"></div>
-      <div class="help">
-        <div class="subnote">Tip: paste multiple token contract addresses (CAs). SolScope will pull top traders / holders then map to wallets.</div>
-        <div class="subnote">Some wallets are not indexed as "smart money" by GMGN. Those can return PnL + trades but null win rate and hold.</div>
-      </div>
-    </div>
-  </div>
+<!-- ══ CA LOOKUP ══ -->
+<div class="tab-pane" id="pane-ca">
+<div class="ca-panel">
+<div class="ca-panel-title">🔍 Fetch wallets that traded a specific token</div>
+<div class="ca-row">
+<input class="ca-input" id="caInput" placeholder="Paste token contract address (CA)…" />
+<button class="btn btn-teal" id="caBtn" onclick="caLookup()">Fetch Traders</button>
+<button class="btn btn-ghost btn-sm" onclick="clearCA()">Clear</button>
+</div>
+<div class="ca-hint">Pulls top 100 buyers sorted by profit. Stats loaded from GMGN smart money index where available.</div>
+<div class="ca-banner" id="caBanner"></div>
+</div>
+<div class="toolbar">
+<input class="fi fi-lg" id="caSearch" placeholder="search address…" oninput="renderCA()" />
+<select class="sel" id="caTagF" onchange="renderCA()">
+<option value="">All Tags</option>
+<option value="whale">🐋 Whale</option>
+<option value="smart">🧠 Smart</option>
+<option value="bot">🤖 Bot</option>
+</select>
+<select class="sel" id="caStatsF" onchange="renderCA()">
+<option value="">All</option>
+<option value="yes">Has Stats</option>
+<option value="no">No Stats</option>
+</select>
+<span class="count-badge" id="caBadge">0 wallets</span>
+</div>
+<div class="table-wrap">
+<div class="thead col-sm">
+<div class="th ns">#</div>
+<div class="th ns">Wallet</div>
+<div class="th ns">Tag</div>
+<div class="th ns">Realized PnL</div>
+<div class="th ns">Win Rate</div>
+<div class="th ns">Avg Hold</div>
+<div class="th ns">Trades</div>
+<div class="th ns">Stats</div>
+<div class="th ns">Actions</div>
+</div>
+<div class="t-body" id="caBody"></div>
+<div class="empty" id="caEmpty">
+<div class="empty-icon">🔍</div>
+<div class="empty-text">Paste a CA above and hit <b style="color:var(--blue)">Fetch Traders</b>.</div>
+</div>
+</div>
+</div>
 
 </div>
 </main>
-
-<div class="toast" id="toast"></div>
+<div class="toast" id="toastEl"></div>
 
 <script>
 // ═══════════════════════════════════════════════════════════════
-// SolScope  -  three separate data stores, never mixed
+// SolScope  —  three separate data stores, never mixed
 //   wallets[]   → Smart Money  (full stats, persisted)
 //   trending[]  → Trending     (addresses only, persisted)
 //   caWallets[] → CA Lookup    (per-session)
@@ -343,652 +401,438 @@ let filtered  = [];
 let sortField = 'pnl';
 let sortAsc   = false;
 let scraping  = false;
-let currentPeriod = '7d';
-let periodRefreshing = false;
 
 // ── Persist ───────────────────────────────────────────────────
 function save()         { try { localStorage.setItem('ss11',  JSON.stringify(wallets));  } catch(e){} }
 function saveTrending() { try { localStorage.setItem('ss11t', JSON.stringify(trending)); } catch(e){} }
 function load() {
-  try { const d=localStorage.getItem('ss11');  if(d) wallets  = JSON.parse(d); } catch(e){}
-  try { const d=localStorage.getItem('ss11t'); if(d) trending = JSON.parse(d); } catch(e){}
+try { const d=localStorage.getItem('ss11');  if(d) wallets  = JSON.parse(d); } catch(e){}
+try { const d=localStorage.getItem('ss11t'); if(d) trending = JSON.parse(d); } catch(e){}
 }
-const sleep = ms => new Promise(r=>setTimeout(r,ms));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 
+// ── Tabs ──────────────────────────────────────────────────────
+function switchTab(name) {
+document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+document.getElementById('tab-'+name).classList.add('active');
+document.getElementById('pane-'+name).classList.add('active');
+}
+
+// ── UI helpers ────────────────────────────────────────────────
+function log(msg, type='') {
+const p = document.getElementById('logPanel');
+p.style.display = 'block';
+const l = document.createElement('div');
+l.className = 'log-line ' + type;
+l.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+p.appendChild(l); p.scrollTop = p.scrollHeight;
+}
+function setProgress(pct) { document.getElementById('progressWrap').style.display='block'; document.getElementById('progressFill').style.width=Math.min(100,pct)+'%'; }
+function setStatus(txt, type='') { const el=document.getElementById('statusPill'); el.textContent='◎ '+txt; el.className='status-pill '+type; }
+function toast(msg) { const t=document.getElementById('toastEl'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2600); }
+function badges() {
+document.getElementById('tb-smart').textContent    = wallets.length;
+document.getElementById('tb-trending').textContent = trending.length;
+document.getElementById('tb-ca').textContent       = caWallets.length;
+}
+
+// ── Proxy ─────────────────────────────────────────────────────
 const PROXY = window.location.hostname==='localhost' ? 'http://localhost:8080' : window.location.origin;
+async function pf(url) {
+const r = await fetch(PROXY + '/proxy?' + encodeURIComponent(url));
+if (!r.ok) throw new Error('proxy ' + r.status);
+const j = await r.json();
+if (j.error) throw new Error(j.error);
+return j;
+}
 
 // ── Helpers ───────────────────────────────────────────────────
-function setStatus(text, cls='') {
-  const el = document.getElementById('statusPill');
-  el.className = 'status-pill ' + (cls||'');
-  el.textContent = text || '◎ Idle';
-}
-function setProgress(pct) {
-  const wrap = document.getElementById('progressWrap');
-  const fill = document.getElementById('progressFill');
-  if (pct==null) { wrap.style.display='none'; return; }
-  wrap.style.display='block';
-  fill.style.width = Math.max(0,Math.min(100,pct)) + '%';
-  if (pct>=100) setTimeout(()=>{wrap.style.display='none';},700);
-}
-function log(msg, kind='') {
-  const p = document.getElementById('logPanel');
-  p.style.display='block';
-  const div=document.createElement('div');
-  div.className = kind==='ok'?'log-ok':kind==='err'?'log-err':kind==='inf'?'log-inf':'';
-  div.textContent = msg;
-  p.appendChild(div);
-  p.scrollTop = p.scrollHeight;
-}
-function toast(msg) {
-  const t=document.getElementById('toast');
-  t.textContent=msg;
-  t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),1800);
-}
-function parseFloatSafe(x){ const n=parseFloat(x); return Number.isFinite(n)?n:null; }
-
-// ── Proxy Fetch ───────────────────────────────────────────────
-async function pf(url) {
-  const r = await fetch(PROXY + '/proxy?' + encodeURIComponent(url));
-  if (!r.ok) throw new Error('proxy ' + r.status);
-  const j = await r.json();
-  if (j.error) throw new Error(j.error);
-  return j;
-}
-
-// ── Wallet Model ──────────────────────────────────────────────
-function mkWallet(addr, pnl, winrate, holdMins, trades, source) {
-  return {
-    address: addr,
-    pnl: pnl ?? null,
-    winrate: winrate ?? null,
-    holdMins: holdMins ?? null,
-    trades: trades ?? null,
-    source: source || 'gmgn',
-    tag: (pnl??0)>50000?'whale' : (winrate??0)>0.65?'smart' : (trades??0)>300?'bot' : '',
-    hasStats: pnl != null,
-    lastActive: Date.now()
-  };
-}
-
-// ── Parse leaderboard entries ─────────────────────────────────
 function parseEntry(w, period) {
-  const addr = w?.wallet_address || w?.address || w?.addr;
-  if (!addr) return null;
-  const pnl = parseFloatSafe(w?.[`realized_profit_${period}`] ?? w?.realized_profit ?? w?.pnl);
-  const winrate = parseFloatSafe(w?.winrate ?? w?.wr);
-  const holdMins = w?.avg_holding_peroid != null ? Math.round(parseFloatSafe(w.avg_holding_peroid)/60) : null;
-  const trades = (parseInt(w?.[`buy_${period}`] ?? w?.buy ?? 0)) + (parseInt(w?.[`sell_${period}`] ?? w?.sell ?? 0));
-  return { addr, pnl: pnl ?? 0, winrate: winrate ?? 0, holdMins, trades: trades ?? 0 };
+const addr = w.wallet_address || w.address; if (!addr) return null;
+return {
+addr,
+pnl:      parseFloat(w[`realized_profit_${period}`] ?? 0),
+winrate:  parseFloat(w[`winrate_${period}`] ?? 0),
+holdMins: Math.round(parseFloat(w[`avg_holding_period_${period}`] ?? 0) / 60),
+trades:   parseInt(w[`buy_${period}`] ?? w.buy ?? 0) + parseInt(w[`sell_${period}`] ?? w.sell ?? 0)
+};
+}
+function mkWallet(addr, pnl, winrate, holdMins, trades, source) {
+return { id:addr, address:addr, label:'', source, pnl, winrate, holdMins, trades,
+tag: pnl>50000?'whale' : winrate>0.65?'smart' : trades>300?'bot' : '',
+lastActive: Date.now() };
 }
 
-// ── UI Tabs ───────────────────────────────────────────────────
-function switchTab(name) {
-  ['smart','trending','ca'].forEach(t=>{
-    document.getElementById('pane-'+t).classList.toggle('active', t===name);
-    document.getElementById('tab-'+t).classList.toggle('active', t===name);
-  });
-}
-
-// ── Sorting ───────────────────────────────────────────────────
-function setSort(field) {
-  sortField = field;
-  document.getElementById('f-sort').value = field==='hold'?'hold':field==='active'?'active':field==='winrate'?'winrate':field==='trades'?'trades':'pnl';
-  applyFilters();
-}
-function toggleSortDir() { sortAsc=!sortAsc; applyFilters(); }
-
-// ── Stats badges ──────────────────────────────────────────────
-function badges() {
-  document.getElementById('tb-smart').textContent = wallets.length;
-  document.getElementById('tb-trending').textContent = trending.length;
-  document.getElementById('tb-ca').textContent = caWallets.length;
-
-  document.getElementById('s-count').textContent = wallets.length.toLocaleString();
-  const prof = wallets.filter(w => (w.pnl??0) > 0).length;
-  const whales = wallets.filter(w => w.tag==='whale').length;
-  const wrs = wallets.filter(w => w.winrate!=null).map(w => w.winrate);
-  const avgWr = wrs.length ? (wrs.reduce((a,b)=>a+b,0)/wrs.length) : null;
-  const pnlTot = wallets.filter(w=>w.pnl!=null).reduce((a,b)=>a+(b.pnl||0),0);
-
-  document.getElementById('s-prof').textContent = prof.toLocaleString();
-  document.getElementById('s-whale').textContent = whales.toLocaleString();
-  document.getElementById('s-wr').textContent = avgWr==null ? '-' : Math.round(avgWr*100)+'%';
-  document.getElementById('s-pnl').textContent = pnlTot==0 ? '-' : '$'+Math.round(pnlTot).toLocaleString();
-
-  document.getElementById('s-shown').textContent = `${filtered.length.toLocaleString()} / ${wallets.length.toLocaleString()}`;
-  document.getElementById('shownLabel').textContent = filtered.length.toLocaleString();
-
-  document.getElementById('sortLabel').textContent =
-    sortField==='pnl'?'PnL':sortField==='winrate'?'WinRate':sortField==='trades'?'Trades':sortField==='hold'?'Hold':sortField==='active'?'Active':'Tag';
-  document.getElementById('dirLabel').textContent = sortAsc?'ASC':'DESC';
-}
-
-// ── Filter + render Smart Money ───────────────────────────────
-function applyFilters() {
-  const q = (document.getElementById('q').value || '').trim().toLowerCase();
-  const tag = document.getElementById('f-tag').value;
-
-  filtered = wallets.filter(w=>{
-    if (q && !w.address.toLowerCase().includes(q)) return false;
-    if (tag==='all') return true;
-    if (tag==='none') return !w.tag;
-    return w.tag===tag;
-  });
-
-  const get = (w) => {
-    if (sortField==='pnl') return w.pnl ?? -Infinity;
-    if (sortField==='winrate') return w.winrate ?? -Infinity;
-    if (sortField==='trades') return w.trades ?? -Infinity;
-    if (sortField==='hold') return w.holdMins ?? -Infinity;
-    if (sortField==='active') return w.lastActive ?? 0;
-    if (sortField==='tag') return (w.tag||'').charCodeAt(0)||0;
-    return 0;
-  };
-
-  filtered.sort((a,b)=>{
-    const va=get(a), vb=get(b);
-    const d = (va>vb?1:va<vb?-1:0);
-    return sortAsc ? d : -d;
-  });
-
-  renderWallets();
-  badges();
-}
-
-function renderWallets() {
-  const body = document.getElementById('walletBody');
-  body.innerHTML='';
-  for (const w of filtered) {
-    const tr=document.createElement('tr');
-
-    const tdTag=document.createElement('td');
-    tdTag.innerHTML = w.tag ? `<span class="tag ${w.tag}">${w.tag}</span>` : `<span class="dim">-</span>`;
-    tr.appendChild(tdTag);
-
-    const tdAddr=document.createElement('td');
-    tdAddr.className='mono nowrap';
-    tdAddr.innerHTML = `<span title="${w.address}">${w.address.slice(0,4)}...${w.address.slice(-4)}</span> <span class="btn-icon" title="Copy" onclick="cp('${w.address}')">⎘</span>`;
-    tr.appendChild(tdAddr);
-
-    const tdPnl=document.createElement('td');
-    tdPnl.className='right mono';
-    tdPnl.innerHTML = w.pnl==null ? `<span class="dim">-</span>` : `<span class="${w.pnl>=0?'cv-green':'cv-red'}">$${Math.round(w.pnl).toLocaleString()}</span>`;
-    tr.appendChild(tdPnl);
-
-    const tdWr=document.createElement('td');
-    tdWr.className='right mono';
-    tdWr.innerHTML = w.winrate==null ? `<span class="dim">-</span>` : `${Math.round(w.winrate*100)}%`;
-    tr.appendChild(tdWr);
-
-    const tdHold=document.createElement('td');
-    tdHold.className='right mono';
-    tdHold.innerHTML = w.holdMins==null ? `<span class="dim">-</span>` : fmtHold(w.holdMins).v;
-    tr.appendChild(tdHold);
-
-    const tdTr=document.createElement('td');
-    tdTr.className='right mono';
-    tdTr.innerHTML = w.trades==null ? `<span class="dim">-</span>` : w.trades.toLocaleString();
-    tr.appendChild(tdTr);
-
-    const tdAct=document.createElement('td');
-    tdAct.className='right mono';
-    tdAct.innerHTML = w.lastActive ? fmtDate(w.lastActive) : `<span class="dim">-</span>`;
-    tr.appendChild(tdAct);
-
-    const tdA=document.createElement('td');
-    tdA.className='right';
-    tdA.innerHTML = `
-      <div class="actions">
-        <button class="btn btn-ghost btn-sm" onclick="openGMGN('${w.address}')">GMGN</button>
-        <button class="btn btn-ghost btn-sm" onclick="removeWallet('${w.address}')">Remove</button>
-      </div>`;
-    tr.appendChild(tdA);
-
-    body.appendChild(tr);
-  }
-}
-
-function openGMGN(addr) {
-  window.open(`https://gmgn.ai/sol/address/${addr}`, '_blank');
-}
-
-function removeWallet(addr) {
-  wallets = wallets.filter(w => w.address !== addr);
-  save();
-  applyFilters();
-  toast('Removed');
-}
-
-function clearAll() {
-  if (!confirm('Clear all saved smart money wallets?')) return;
-  wallets=[];
-  save();
-  applyFilters();
-  toast('Cleared');
-}
-
-// ── Export/Import ─────────────────────────────────────────────
-function exportJSON() {
-  const blob=new Blob([JSON.stringify(wallets,null,2)], {type:'application/json'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='solscope-wallets.json';
-  a.click();
-  toast('Exported');
-}
-function importJSON() {
-  const inp=document.createElement('input');
-  inp.type='file'; inp.accept='application/json';
-  inp.onchange=async () => {
-    const f=inp.files[0]; if(!f) return;
-    const txt=await f.text();
-    try {
-      const arr=JSON.parse(txt);
-      if (!Array.isArray(arr)) throw new Error('not array');
-      const seen=new Set(wallets.map(w=>w.address));
-      for (const w of arr) if (w?.address && !seen.has(w.address)) wallets.push(w);
-      save(); applyFilters(); badges();
-      toast('Imported');
-    } catch(e) { alert('Import failed: '+e.message); }
-  };
-  inp.click();
-}
-
-// ── Trending ──────────────────────────────────────────────────
-async function scrapeTrendingWallets(seen) {
-  let added=0;
-  log('[Trending] Fetching buyers…');
-  const d = await pf('https://gmgn.ai/defi/quotation/v1/trending/buyers/sol?limit=80');
-  const list = d.data?.list || d.list || [];
-  for (const it of list) {
-    const addr = it?.address || it?.wallet || it?.wallet_address;
-    if (!addr || seen.has(addr)) continue;
-    seen.add(addr);
-    trending.unshift({ address: addr, ts: Date.now() });
-    added++;
-  }
-  saveTrending();
-  renderTrending();
-  log(`[Trending] Added ${added} addresses`,'ok');
-  return added;
-}
-
-async function refreshTrending() {
-  try {
-    setStatus('Trending…','running'); setProgress(5);
-    const seen=new Set(trending.map(w=>w.address));
-    const a=await scrapeTrendingWallets(seen);
-    setStatus('Done','done'); setProgress(100);
-    toast(`Trending +${a}`);
-  } catch(e) {
-    setStatus('Error','error');
-    log('[Trending] '+e.message,'err');
-  }
-}
-
-function renderTrending() {
-  const grid=document.getElementById('trendGrid');
-  grid.innerHTML='';
-  for (const t of trending) {
-    const div=document.createElement('div');
-    div.className='trend-card';
-    div.innerHTML = `
-      <div class="trend-addr">${t.address.slice(0,4)}...${t.address.slice(-4)}</div>
-      <div class="trend-meta"><span>${fmtDate(t.ts)}</span><span class="mono">addr</span></div>
-      <div class="trend-actions">
-        <button class="btn btn-teal btn-sm" onclick="trackFromTrending('${t.address}')">Track</button>
-        <button class="btn btn-ghost btn-sm" onclick="openGMGN('${t.address}')">GMGN</button>
-        <button class="btn btn-ghost btn-sm" onclick="removeTrending('${t.address}')">Remove</button>
-      </div>`;
-    grid.appendChild(div);
-  }
-  badges();
-}
-
-function removeTrending(addr) {
-  trending = trending.filter(w => w.address !== addr);
-  saveTrending();
-  renderTrending();
-  toast('Removed');
-}
-
-function clearTrending() {
-  if (!confirm('Clear trending list?')) return;
-  trending=[];
-  saveTrending();
-  renderTrending();
-  toast('Cleared');
-}
-
-async function trackFromTrending(addr) {
-  if (wallets.some(w=>w.address===addr)) { toast('Already tracked'); return; }
-  try {
-    setStatus('Tracking…','running');
-    const d = await pf(`https://gmgn.ai/defi/quotation/v1/smartmoney/sol/walletNew/${addr}?period=${currentPeriod}`);
-    const w = d.data;
-    if (!w || typeof w !== 'object') throw new Error('no data');
-
-    const key = `realized_profit_${currentPeriod}`;
-    const buyKey = `buy_${currentPeriod}`;
-    const sellKey = `sell_${currentPeriod}`;
-
-    const pnl = w[key] != null ? parseFloatSafe(w[key]) : parseFloatSafe(w.realized_profit);
-    const winrate = parseFloatSafe(w.winrate);
-    const holdMins = w.avg_holding_peroid != null ? Math.round(parseFloatSafe(w.avg_holding_peroid)/60) : null;
-    const trades = (parseInt(w[buyKey] ?? w.buy ?? 0)) + (parseInt(w[sellKey] ?? w.sell ?? 0));
-
-    wallets.unshift(mkWallet(addr, pnl, winrate, holdMins, trades, 'trending'));
-    save();
-    applyFilters();
-    badges();
-    setStatus('Done','done');
-    toast('Tracked');
-  } catch(e) {
-    setStatus('Error','error');
-    log('[Track] '+e.message,'err');
-  }
-}
-
-// ── Scrape leaderboards ───────────────────────────────────────
+// ── Leaderboards → wallets[] ──────────────────────────────────
 async function scrapeLeaderboards(minWr, minPnl, minTrades, seen) {
-  const eps = [
-    {url:'https://gmgn.ai/defi/quotation/v1/rank/sol/wallets/1d?orderby=pnl&direction=desc&limit=200',     label:'1d PnL',     period:'1d'},
-    {url:'https://gmgn.ai/defi/quotation/v1/rank/sol/wallets/1d?orderby=winrate&direction=desc&limit=200', label:'1d WinRate', period:'1d'},
-    {url:'https://gmgn.ai/defi/quotation/v1/rank/sol/wallets/7d?orderby=pnl&direction=desc&limit=200',     label:'7d PnL',     period:'7d'},
-    {url:'https://gmgn.ai/defi/quotation/v1/rank/sol/wallets/7d?orderby=winrate&direction=desc&limit=200', label:'7d WinRate', period:'7d'},
-    {url:'https://gmgn.ai/defi/quotation/v1/rank/sol/wallets/30d?orderby=pnl&direction=desc&limit=200',    label:'30d PnL',    period:'30d'},
-    {url:'https://gmgn.ai/defi/quotation/v1/rank/sol/wallets/30d?orderby=winrate&direction=desc&limit=200',label:'30d WinRate',period:'30d'},
-  ];
-  let added = 0;
-  for (let i=0; i<eps.length; i++) {
-    const {url,label,period} = eps[i];
-    try {
-      log(`[Leaderboard] ${label}…`);
-      const d = await pf(url);
-      const list = d.data?.rank || d.rank || [];
-      log(`[Leaderboard] ${label} - ${list.length} entries`);
-      for (const w of list) {
-        const s = parseEntry(w, period);
-        if (!s || seen.has(s.addr)) continue;
-        if (s.winrate < minWr || s.pnl < minPnl || s.trades < minTrades) continue;
-        seen.add(s.addr);
-        wallets.unshift(mkWallet(s.addr, s.pnl, s.winrate, s.holdMins, s.trades, 'gmgn'));
-        added++;
-        log(`  ✓ ${s.addr.slice(0,8)}… $${Math.round(s.pnl).toLocaleString()} ${Math.round(s.winrate*100)}%WR`, 'ok');
-      }
-    } catch(e) {
-      log(`[Leaderboard] ${label} failed: ${e.message}`, 'err');
-    }
-    setProgress(Math.round(((i+1)/eps.length)*45)+5);
-    await sleep(400);
-  }
-  return added;
+const eps = [
+{url:'https://gmgn.ai/defi/quotation/v1/rank/sol/wallets/1d?orderby=pnl&direction=desc&limit=200',     label:'1d PnL',     period:'1d'},
+{url:'https://gmgn.ai/defi/quotation/v1/rank/sol/wallets/1d?orderby=winrate&direction=desc&limit=200', label:'1d WinRate', period:'1d'},
+{url:'https://gmgn.ai/defi/quotation/v1/rank/sol/wallets/7d?orderby=pnl&direction=desc&limit=200',     label:'7d PnL',     period:'7d'},
+{url:'https://gmgn.ai/defi/quotation/v1/rank/sol/wallets/7d?orderby=winrate&direction=desc&limit=200', label:'7d WinRate', period:'7d'},
+{url:'https://gmgn.ai/defi/quotation/v1/rank/sol/wallets/30d?orderby=pnl&direction=desc&limit=200',    label:'30d PnL',    period:'30d'},
+{url:'https://gmgn.ai/defi/quotation/v1/rank/sol/wallets/30d?orderby=winrate&direction=desc&limit=200',label:'30d WinRate',period:'30d'},
+];
+let added = 0;
+for (let i=0; i<eps.length; i++) {
+const {url,label,period} = eps[i];
+try {
+log(`[Leaderboard] ${label}…`);
+const d = await pf(url);
+const list = d.data?.rank || d.rank || [];
+log(`[Leaderboard] ${label} — ${list.length} entries`);
+for (const w of list) {
+const s = parseEntry(w, period);
+if (!s || seen.has(s.addr)) continue;
+if (s.winrate < minWr || s.pnl < minPnl || s.trades < minTrades) continue;
+seen.add(s.addr);
+wallets.unshift(mkWallet(s.addr, s.pnl, s.winrate, s.holdMins, s.trades, 'gmgn'));
+added++;
+log(`  ✓ ${s.addr.slice(0,8)}… $${Math.round(s.pnl).toLocaleString()} ${Math.round(s.winrate*100)}%WR`, 'ok');
+}
+save(); applyFilters(); badges();
+setProgress(5 + Math.round((i+1)/eps.length * 90));
+await sleep(650);
+} catch(e) { log(`[Leaderboard] ${label} failed: ${e.message}`, 'err'); }
+}
+return added;
 }
 
-// ── Main scrape orchestrator ───────────────────────────────────
+// ── Trending buyers → trending[] (separate, no stats) ─────────
+async function scrapeTrendingWallets(seenTrend) {
+log('[Trending] Fetching hot tokens…', 'inf');
+let added = 0;
+try {
+const td = await pf('https://gmgn.ai/defi/quotation/v1/rank/sol/swaps/1h?orderby=swaps&direction=desc&limit=20');
+const tokens = (td.data?.rank||td.rank||[]).map(t=>t.address||t.token_address).filter(Boolean).slice(0,15);
+log(`[Trending] ${tokens.length} hot tokens`);
+for (let i=0; i<tokens.length; i++) {
+const tok = tokens[i];
+try {
+const bd = await pf(`https://gmgn.ai/defi/quotation/v1/tokens/top_buyers/sol/${tok}?limit=50&orderby=profit&direction=desc`);
+let buyers = bd.data?.holders ?? bd.holders ?? bd.data ?? [];
+if (!Array.isArray(buyers)) buyers = Object.values(buyers).find(v=>Array.isArray(v)) || [];
+for (const b of buyers) {
+const addr = b.wallet_address || b.address;
+if (!addr || seenTrend.has(addr)) continue;
+seenTrend.add(addr);
+const gmgnTags = [...(b.tags||[]),...(b.maker_token_tags||[])].filter(t=>typeof t==='string').slice(0,4);
+trending.push({address:addr, tokenCa:tok, tags:gmgnTags, addedAt:Date.now()});
+added++;
+}
+saveTrending(); renderTrending(); badges();
+await sleep(350);
+} catch(e) { log(`[Trending] ${tok.slice(0,8)}… ${e.message}`, 'err'); }
+}
+} catch(e) { log(`[Trending] failed: ${e.message}`, 'err'); }
+log(`[Trending] Done — ${added} addresses`, added>0?'ok':'inf');
+return added;
+}
+
+// ── Main pipeline ─────────────────────────────────────────────
 async function startScrape() {
-  if (scraping) return;
-  scraping = true;
-  const btn = document.getElementById('scrapeBtn');
-  btn.disabled=true; btn.textContent='⟳ Running…';
-  document.getElementById('logPanel').innerHTML='';
-  document.getElementById('logPanel').style.display='block';
-  setStatus('Scraping…','running'); setProgress(2);
+if (scraping) return;
+scraping = true;
+const btn = document.getElementById('scrapeBtn');
+btn.disabled=true; btn.textContent='⟳ Running…';
+document.getElementById('logPanel').innerHTML='';
+document.getElementById('logPanel').style.display='block';
+setStatus('Scraping…','running'); setProgress(2);
 
-  const minWr     = (parseFloat(document.getElementById('cfgMinWr').value)    ||0)/100;
-  const minPnl    =  parseFloat(document.getElementById('cfgMinPnl').value)   ||0;
-  const minTrades =  parseInt(document.getElementById('cfgMinTrades').value)  ||0;
-  const useGmgn   = document.getElementById('cfgGmgn').checked;
-  const useTrend  = document.getElementById('cfgTrending').checked;
+const minWr     = (parseFloat(document.getElementById('cfgMinWr').value)    ||0)/100;
+const minPnl    =  parseFloat(document.getElementById('cfgMinPnl').value)   ||0;
+const minTrades =  parseInt(document.getElementById('cfgMinTrades').value)  ||0;
+const useGmgn   = document.getElementById('cfgGmgn').checked;
+const useTrend  = document.getElementById('cfgTrending').checked;
 
-  try {
-    let lb=0, tr=0;
-    if (useGmgn) { const seen=new Set(wallets.map(w=>w.address)); lb=await scrapeLeaderboards(minWr,minPnl,minTrades,seen); }
-    if (useTrend){ const seen=new Set(trending.map(w=>w.address)); tr=await scrapeTrendingWallets(seen); }
-    save(); applyFilters(); setProgress(100); badges();
-    setStatus(`Done - ${lb} smart + ${tr} trending`,'done');
-    log(`✓ ${lb} smart money + ${tr} trending addresses`,'inf');
-    toast(`✓ ${lb} smart money wallets added`);
-  } catch(e) { setStatus('Error','error'); log('Fatal: '+e.message,'err'); }
+try {
+let lb=0, tr=0;
+if (useGmgn) { const seen=new Set(wallets.map(w=>w.address)); lb=await scrapeLeaderboards(minWr,minPnl,minTrades,seen); }
+if (useTrend){ const seen=new Set(trending.map(w=>w.address)); tr=await scrapeTrendingWallets(seen); }
+save(); applyFilters(); setProgress(100); badges();
+setStatus(`Done — ${lb} smart + ${tr} trending`,'done');
+log(`✓ ${lb} smart money + ${tr} trending addresses`,'inf');
+toast(`✓ ${lb} smart money wallets added`);
+} catch(e) { setStatus('Error','error'); log('Fatal: '+e.message,'err'); }
 
-  scraping=false; btn.disabled=false; btn.textContent='▶ Auto-Discover';
+scraping=false; btn.disabled=false; btn.textContent='▶ Auto-Discover';
 }
 
 // ── CA Lookup ─────────────────────────────────────────────────
-async function fetchCA() {
-  const btn=document.getElementById('caBtn');
-  const banner=document.getElementById('caBanner');
-  const raw=(document.getElementById('caIn').value||'').trim();
-  if(!raw){toast('Paste CA(s) first');return;}
-  btn.disabled=true; btn.textContent='⟳ Fetching…';
-  banner.style.display='none';
-  caWallets=[];
-  renderCA(); badges();
+async function caLookup() {
+const ca = document.getElementById('caInput').value.trim();
+if (!ca) return toast('Paste a contract address first');
 
-  try {
-    setStatus('CA lookup…','running'); setProgress(4);
-    const cas=[...new Set(raw.split(/\s+/g).filter(Boolean))].slice(0,30);
-    log(`[CA] ${cas.length} token(s)…`,'inf');
+const btn    = document.getElementById('caBtn');
+const banner = document.getElementById('caBanner');
+btn.disabled=true; btn.innerHTML='<span class="spinning">◎</span> Fetching…';
+banner.style.display='none';
+caWallets=[]; renderCA(); badges();
 
-    // For each CA, pull top traders list, then map to wallet stats
-    let withStats=0;
-    for (let ci=0; ci<cas.length; ci++) {
-      const ca = cas[ci];
-      log(`[CA] token ${ci+1}/${cas.length}: ${ca.slice(0,6)}…`,'inf');
-      // gmgn "token traders" endpoint
-      const td = await pf(`https://gmgn.ai/defi/quotation/v1/tokens/top_traders/sol/${ca}?limit=10`);
-      const traders = td.data?.list || td.list || [];
-      for (let i=0; i<traders.length; i++) {
-        const addr = traders[i]?.address || traders[i]?.wallet_address || traders[i]?.wallet;
-        if (!addr) continue;
-        // Use null sentinels so we can distinguish "GMGN returned null" from "no data"
-        const entry = {address:addr, tokenCa:ca, source:'ca', pnl:null, winrate:null, holdMins:null, trades:null, tag:'', hasStats:false, lastActive:Date.now()};
+try {
+log(`[CA] ${ca.slice(0,8)}…`,'inf');
+const bd = await pf(`https://gmgn.ai/defi/quotation/v1/tokens/top_buyers/sol/${ca}?limit=100&orderby=profit&direction=desc`);
+let buyers = bd.data?.holders ?? bd.holders ?? bd.data ?? [];
+if (!Array.isArray(buyers)) buyers = Object.values(buyers).find(v=>Array.isArray(v)) || [];
+
+if (!buyers.length) {
+banner.className='ca-banner err';
+banner.textContent='No buyers found — check the CA is correct and try again.';
+banner.style.display='block'; return;
+}
+
+log(`[CA] ${buyers.length} buyers — fetching stats…`,'inf');
+
+for (let i=0; i<Math.min(buyers.length,100); i++) {
+const addr = buyers[i].wallet_address || buyers[i].address;
+if (!addr) continue;
+const entry = {address:addr, tokenCa:ca, source:'ca', pnl:0, winrate:0, holdMins:0, trades:0, tag:'', hasStats:false, lastActive:Date.now()};
+      try {
+        const sd = await pf(`https://gmgn.ai/defi/quotation/v1/smartmoney/sol/walletNew/${addr}?period=7d`);
+        const w = sd.data;
+        if (w) {
+          entry.pnl      = parseFloat(w.realized_profit ?? w.realized_profit_7d ?? 0);
+          entry.winrate  = parseFloat(w.winrate ?? w.winrate_7d ?? 0);
+          entry.holdMins = Math.round(parseFloat(w.avg_holding_period ?? w.avg_holding_period_7d ?? 0)/60);
+          entry.trades   = parseInt(w.buy_7d ?? w.buy ?? 0) + parseInt(w.sell_7d ?? w.sell ?? 0);
+          entry.hasStats = true;
+          entry.tag      = entry.pnl>50000?'whale' : entry.winrate>0.65?'smart' : entry.trades>300?'bot' : '';
+        }
+      } catch(_) {}
+      // Try multiple endpoints — not all wallets appear in each index
+      const statEps = [
+        `https://gmgn.ai/defi/quotation/v1/smartmoney/sol/walletNew/${addr}?period=7d`,
+        `https://gmgn.ai/defi/quotation/v1/wallet_stat/sol/${addr}?period=7d`,
+        `https://gmgn.ai/defi/quotation/v1/wallet_stat/sol/${addr}?period=30d`,
+      ];
+      for (const ep of statEps) {
         try {
-          // walletNew returns data for any wallet - period is controlled by tabs
-          const sd = await pf(`https://gmgn.ai/defi/quotation/v1/smartmoney/sol/walletNew/${addr}?period=${currentPeriod}`);
-          const w = sd.data;
-          if (w && typeof w === 'object') {
-            const key = `realized_profit_${currentPeriod}`;
-            const buyKey = `buy_${currentPeriod}`;
-            const sellKey = `sell_${currentPeriod}`;
-
-            const pnl = w[key] != null ? parseFloat(w[key])
-                      : w.realized_profit     != null ? parseFloat(w.realized_profit) : null;
-            // Winrate & hold: GMGN only computes these for "smart money" indexed wallets - null otherwise
-            const winrate  = w.winrate != null ? parseFloat(w.winrate) : null;
-            const holdMins = w.avg_holding_peroid != null ? Math.round(parseFloat(w.avg_holding_peroid) / 60) : null;
-            // Trades: use period counts
-            const trades = (parseInt(w[buyKey] ?? w.buy ?? 0)) + (parseInt(w[sellKey] ?? w.sell ?? 0));
-            entry.pnl      = pnl;
-            entry.winrate  = winrate;
-            entry.holdMins = holdMins;
-            entry.trades   = trades || null;
-            entry.hasStats = pnl !== null;
-            entry.tag = (pnl??0)>50000?'whale' : (winrate??0)>0.65?'smart' : (trades??0)>300?'bot' : '';
-            if (entry.hasStats) withStats++;
+          const sd = await pf(ep);
+          const w = sd.data?.wallet_stat ?? sd.data ?? null;
+          if (!w || typeof w !== 'object') continue;
+          const pnl     = parseFloat(w.realized_profit ?? w.realized_profit_7d ?? w.pnl ?? 0);
+          const winrate = parseFloat(w.winrate ?? w.winrate_7d ?? w.win_rate ?? 0);
+          const holdSec = parseFloat(w.avg_holding_period ?? w.avg_holding_period_7d ?? w.avg_holding_peroid ?? 0);
+          const trades  = parseInt(w.buy_7d ?? w.buy ?? w.total_count ?? 0) + parseInt(w.sell_7d ?? w.sell ?? 0);
+          if (winrate > 0 || Math.abs(pnl) > 0) {
+            entry.pnl = pnl; entry.winrate = winrate;
+            entry.holdMins = Math.round(holdSec / 60); entry.trades = trades;
+            entry.hasStats = true;
+            entry.tag = pnl>50000?'whale' : winrate>0.65?'smart' : trades>300?'bot' : '';
+            break;
           }
         } catch(_) {}
-        caWallets.push(entry);
-        if ((i+1)%5===0) { renderCA(); badges(); }
-        await sleep(300);
       }
-      setProgress(Math.round(((ci+1)/cas.length)*100));
-      await sleep(500);
-    }
-
-    const withFull    = caWallets.filter(w=>w.hasStats && w.winrate!==null).length;
-    const withPartial = caWallets.filter(w=>w.hasStats && w.winrate===null).length;
-    const addrOnly    = caWallets.filter(w=>!w.hasStats).length;
-    banner.className='ca-banner';
-    banner.textContent=`✓ ${caWallets.length} wallets · ${withFull} full stats · ${withPartial} PnL+trades only · ${addrOnly} address-only`;
-    banner.style.display='block';
-    renderCA(); badges();
-    log(`[CA] Done - ${caWallets.length} wallets, ${withStats} with stats`,'ok');
-
-  } catch(e) {
-    banner.className='ca-banner err';
-    banner.textContent='Error: '+e.message+' - is server.py running?';
-    banner.style.display='block';
-    log(`[CA] failed: ${e.message}`,'err');
-  }
-  btn.disabled=false; btn.textContent='Fetch Traders';
-  setStatus('Done','done'); setProgress(100);
+caWallets.push(entry);
+if ((i+1)%5===0) { renderCA(); badges(); }
+await sleep(300);
 }
 
-function clearCA() {
-  caWallets=[];
-  document.getElementById('caIn').value='';
-  document.getElementById('caBanner').style.display='none';
-  renderCA(); badges();
-  toast('Cleared');
+const withStats = caWallets.filter(w=>w.hasStats).length;
+banner.className='ca-banner';
+banner.textContent=`✓ ${caWallets.length} wallets · ${withStats} have full stats · ${caWallets.length-withStats} address-only`;
+banner.style.display='block';
+renderCA(); badges();
+log(`[CA] Done — ${caWallets.length} wallets, ${withStats} with stats`,'ok');
+
+} catch(e) {
+banner.className='ca-banner err';
+banner.textContent='Error: '+e.message+' — is server.py running?';
+banner.style.display='block';
+log(`[CA] failed: ${e.message}`,'err');
+}
+btn.disabled=false; btn.textContent='Fetch Traders';
 }
 
+function clearCA()       { caWallets=[]; renderCA(); badges(); document.getElementById('caBanner').style.display='none'; document.getElementById('caInput').value=''; }
+function clearTrending() { if(!confirm('Clear all trending wallets?')) return; trending=[]; saveTrending(); renderTrending(); badges(); }
+
+// ── Smart money filter/sort ───────────────────────────────────
+function toggleFilters() { document.getElementById('filterPanel').classList.toggle('open'); document.getElementById('filterBtn').classList.toggle('on'); }
+function resetFilters() {
+['fPnlMin','fPnlMax','fWrMin','fWrMax','fHoldMin','fHoldMax','fTradesMin','fTradesMax','fSearch'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+document.getElementById('fTag').value=''; applyFilters();
+}
+function applyFilters() {
+const g=id=>document.getElementById(id)?.value.trim()||'';
+const num=id=>{const v=parseFloat(g(id).replace(/[$,%\s]/g,''));return isNaN(v)?null:v;};
+const search=g('fSearch').toLowerCase(), tagV=g('fTag');
+const pnlMin=num('fPnlMin'),pnlMax=num('fPnlMax'),wrMin=num('fWrMin'),wrMax=num('fWrMax');
+const holdMin=num('fHoldMin'),holdMax=num('fHoldMax'),tradesMin=num('fTradesMin'),tradesMax=num('fTradesMax');
+
+filtered=wallets.filter(w=>{
+if(search&&!w.address.toLowerCase().includes(search)&&!(w.label||'').toLowerCase().includes(search)) return false;
+if(tagV&&w.tag!==tagV) return false;
+if(pnlMin!==null&&w.pnl<pnlMin)         return false;
+if(pnlMax!==null&&w.pnl>pnlMax)         return false;
+if(wrMin!==null&&w.winrate*100<wrMin)    return false;
+if(wrMax!==null&&w.winrate*100>wrMax)    return false;
+if(holdMin!==null&&w.holdMins<holdMin)   return false;
+if(holdMax!==null&&w.holdMins>holdMax)   return false;
+if(tradesMin!==null&&w.trades<tradesMin) return false;
+if(tradesMax!==null&&w.trades>tradesMax) return false;
+return true;
+});
+
+const fv=({pnl:w=>w.pnl,winrate:w=>w.winrate,holdtime:w=>w.holdMins,trades:w=>w.trades})[sortField]||(w=>w.pnl);
+filtered.sort((a,b)=>sortAsc?fv(a)-fv(b):fv(b)-fv(a));
+
+const parts=[pnlMin!=null?`PnL≥$${pnlMin.toLocaleString()}`:'',pnlMax!=null?`PnL≤$${pnlMax.toLocaleString()}`:'',
+wrMin!=null?`WR≥${wrMin}%`:'',wrMax!=null?`WR≤${wrMax}%`:'',holdMin!=null?`Hold≥${holdMin}m`:'',
+holdMax!=null?`Hold≤${holdMax}m`:'',tradesMin!=null?`Trades≥${tradesMin}`:'',tradesMax!=null?`Trades≤${tradesMax}`:''].filter(Boolean);
+const sum=document.getElementById('filterSummary');
+if(sum) sum.textContent=parts.length?parts.join(' · '):'No active filters';
+document.getElementById('filterDot')?.classList.toggle('on',parts.length>0);
+renderSmart();
+}
+
+function setSort(f) {
+if(sortField===f) sortAsc=!sortAsc; else{sortField=f;sortAsc=false;}
+const arr=sortAsc?'↑':'↓';
+const keys={pnl:'pnl',winrate:'wr',holdtime:'ht',trades:'tr'};
+['pnl','winrate','holdtime','trades'].forEach(k=>{
+const on=k===f;
+document.getElementById('sb-'+k)?.classList.toggle('active',on);
+document.getElementById('th-'+k)?.classList.toggle('sorted',on);
+if(on){const key=keys[k];['a-','ta-'].forEach(p=>{const el=document.getElementById(p+key);if(el)el.textContent=arr;});}
+});
+applyFilters();
+}
+
+// ── Shared wallet row HTML ────────────────────────────────────
+function wRowHTML(w, i, showDel) {
+const short=w.address.slice(0,5)+'…'+w.address.slice(-4);
+const hs=w.hasStats!==false;
+const pnl=w.pnl||0, wr=Math.round((w.winrate||0)*100), hold=fmtHold(w.holdMins||0), trades=w.trades||0;
+const pnlStr=hs?(pnl>=0?'+$':'-$')+Math.abs(pnl).toLocaleString('en',{maximumFractionDigits:0}):'—';
+const pnlCls=pnl>=0?'pnl-p':'pnl-n';
+const wrCol=wr>=60?'var(--green)':wr>=45?'var(--yellow)':'var(--red)';
+const wrFill=wr>=60?'#14f195':wr>=45?'#ffd166':'#f05c5c';
+const tagEl=w.tag?`<span class="tag t-${w.tag}">${w.tag}</span>`:`<span style="color:var(--dim);font-size:10px">—</span>`;
+const statsEl=w.hasStats===undefined
+? `<span style="font-family:var(--mono);font-size:11px;color:var(--muted)">${fmtDate(w.lastActive)}</span>`
+: w.hasStats
+? `<span style="font-size:10px;color:var(--green);font-family:var(--mono)">✓ full</span>`
+: `<span style="font-size:10px;color:var(--dim);font-family:var(--mono)">addr only</span>`;
+return `
+   <div class="td td-num">${i+1}</div>
+   <div class="td w-info">
+     <span class="w-addr" onclick="cp('${w.address}')" title="Click to copy">${short}</span>
+     <div class="w-meta"><span class="src-badge src-${w.source||'gmgn'}">${w.source||'gmgn'}</span>${w.label?`<span class="w-lbl">${esc(w.label)}</span>`:''}</div>
+   </div>
+   <div class="td">${tagEl}</div>
+   <div class="td"><span class="${hs?pnlCls:''}" style="${!hs?'color:var(--dim)':''}">${pnlStr}</span></div>
+   <div class="td wr-wrap">${hs?`<span class="wr-pct" style="color:${wrCol}">${wr}%</span><div class="wr-bar"><div class="wr-fill" style="width:${wr}%;background:${wrFill}"></div></div>`:`<span style="color:var(--dim);font-family:var(--mono);font-size:11px">—</span>`}</div>
+   <div class="td hold-wrap"><span class="hold-v">${hs?hold.v:'—'}</span><span class="hold-u">${hs?hold.u:''}</span></div>
+   <div class="td"><span class="trd">${hs?trades.toLocaleString():'—'}</span></div>
+   <div class="td">${statsEl}</div>
+   <div class="td acts">
+     <a class="btn-view" href="https://gmgn.ai/sol/address/${w.address}" target="_blank">GMGN ↗</a>
+     ${showDel?`<button class="btn-del" onclick="removeWallet('${w.id||w.address}')">✕</button>`:''}
+   </div>`;
+}
+
+// ── Render: smart ─────────────────────────────────────────────
+function renderSmart() {
+const tbody=document.getElementById('tableBody'), empty=document.getElementById('emptyMsg');
+updateStats();
+document.getElementById('cBadge').textContent=`${filtered.length} wallet${filtered.length!==1?'s':''}`;
+if(!filtered.length){
+tbody.innerHTML=''; empty.style.display='block';
+empty.innerHTML=scraping
+?'<div class="empty-icon" style="animation:pulse 1.2s infinite">◎</div><div class="empty-text">Discovering wallets…</div>'
+:'<div class="empty-icon">◎</div><div class="empty-text">No wallets yet.<br>Hit <b style="color:var(--green)">▶ Auto-Discover</b> to start.</div>';
+return;
+}
+empty.style.display='none';
+const frag=document.createDocumentFragment();
+filtered.forEach((w,i)=>{const el=document.createElement('div');el.className='wrow col-sm';el.innerHTML=wRowHTML(w,i,true);frag.appendChild(el);});
+tbody.innerHTML=''; tbody.appendChild(frag);
+}
+
+// ── Render: trending ─────────────────────────────────────────
+function renderTrending() {
+const tbody=document.getElementById('trendingBody'), empty=document.getElementById('trendingEmpty');
+const search=(document.getElementById('tSearch')?.value||'').toLowerCase();
+const list=trending.filter(w=>!search||w.address.toLowerCase().includes(search));
+document.getElementById('tBadge').textContent=list.length;
+if(!list.length){tbody.innerHTML='';empty.style.display='block';return;}
+empty.style.display='none';
+const frag=document.createDocumentFragment();
+list.slice(0,500).forEach((w,i)=>{
+const el=document.createElement('div');el.className='wrow col-tr';
+const short=w.address.slice(0,5)+'…'+w.address.slice(-4);
+const tokShort=w.tokenCa?w.tokenCa.slice(0,8)+'…':'—';
+const tagStr=w.tags?.length
+?w.tags.map(t=>`<span style="font-size:10px;color:var(--muted);background:var(--surf2);border:1px solid var(--border);border-radius:3px;padding:1px 5px;margin-right:3px">${esc(t)}</span>`).join('')
+:`<span style="color:var(--dim);font-size:10px">—</span>`;
+el.innerHTML=`
+     <div class="td td-num">${i+1}</div>
+     <div class="td w-info">
+       <span class="w-addr" onclick="cp('${w.address}')" title="Click to copy">${short}</span>
+       <div class="w-meta"><span class="src-badge src-trending">trending</span></div>
+     </div>
+     <div class="td" style="font-family:var(--mono);font-size:11px;color:var(--blue)" title="${w.tokenCa}">${tokShort}</div>
+     <div class="td">${tagStr}</div>
+     <div class="td acts">
+       <a class="btn-view" href="https://gmgn.ai/sol/address/${w.address}" target="_blank">GMGN ↗</a>
+       <button class="btn-del" onclick="removeTrending('${w.address}')">✕</button>
+     </div>`;
+frag.appendChild(el);
+});
+tbody.innerHTML='';tbody.appendChild(frag);
+}
+
+// ── Render: CA ───────────────────────────────────────────────
 function renderCA() {
-  const grid=document.getElementById('caGrid');
-  grid.innerHTML='';
-  for (const w of caWallets) {
-    const div=document.createElement('div');
-    div.className='ca-card';
-    const pnl = w.pnl==null ? '-' : '$'+Math.round(w.pnl).toLocaleString();
-    const wr  = w.winrate==null ? '-' : Math.round(w.winrate*100)+'%';
-    const hold= w.holdMins==null ? '-' : fmtHold(w.holdMins).v;
-    const tr  = w.trades==null ? '-' : w.trades.toLocaleString();
-    div.innerHTML = `
-      <div class="ca-title">
-        <div class="ca-ca">${w.tokenCa.slice(0,6)}...${w.tokenCa.slice(-4)}</div>
-        ${w.tag?`<span class="tag ${w.tag}">${w.tag}</span>`:`<span class="mini dim">no tag</span>`}
-      </div>
-      <div class="ca-addr">${w.address}</div>
-      <div class="ca-stats">
-        <span class="pill ${w.pnl!=null && w.pnl>=0?'green':'red'}">PnL: <span class="mono">${pnl}</span></span>
-        <span class="pill blue">WR: <span class="mono">${wr}</span></span>
-        <span class="pill">Hold: <span class="mono">${hold}</span></span>
-        <span class="pill">Trades: <span class="mono">${tr}</span></span>
-      </div>
-      <div class="trend-actions" style="margin-top:12px;">
-        <button class="btn btn-ghost btn-sm" onclick="openGMGN('${w.address}')">GMGN</button>
-        <button class="btn btn-teal btn-sm" onclick="trackFromCA('${w.address}')">Track</button>
-        <button class="btn btn-ghost btn-sm" onclick="cp('${w.address}')">Copy</button>
-      </div>`;
-    grid.appendChild(div);
-  }
+const tbody=document.getElementById('caBody'), empty=document.getElementById('caEmpty');
+const search=(document.getElementById('caSearch')?.value||'').toLowerCase();
+const tagV=document.getElementById('caTagF')?.value||'';
+const statsF=document.getElementById('caStatsF')?.value||'';
+const list=caWallets.filter(w=>{
+if(search&&!w.address.toLowerCase().includes(search)) return false;
+if(tagV&&w.tag!==tagV) return false;
+if(statsF==='yes'&&!w.hasStats) return false;
+if(statsF==='no'&&w.hasStats)  return false;
+return true;
+});
+document.getElementById('caBadge').textContent=list.length;
+if(!list.length){tbody.innerHTML='';empty.style.display='block';return;}
+empty.style.display='none';
+const frag=document.createDocumentFragment();
+list.forEach((w,i)=>{const el=document.createElement('div');el.className='wrow col-sm';el.innerHTML=wRowHTML(w,i,false);frag.appendChild(el);});
+tbody.innerHTML='';tbody.appendChild(frag);
 }
 
-async function trackFromCA(addr) {
-  if (wallets.some(w=>w.address===addr)) { toast('Already tracked'); return; }
-  try {
-    setStatus('Tracking…','running');
-    const d = await pf(`https://gmgn.ai/defi/quotation/v1/smartmoney/sol/walletNew/${addr}?period=${currentPeriod}`);
-    const w = d.data;
-    if (!w || typeof w !== 'object') throw new Error('no data');
-
-    const key = `realized_profit_${currentPeriod}`;
-    const buyKey = `buy_${currentPeriod}`;
-    const sellKey = `sell_${currentPeriod}`;
-
-    const pnl = w[key] != null ? parseFloatSafe(w[key]) : parseFloatSafe(w.realized_profit);
-    const winrate = parseFloatSafe(w.winrate);
-    const holdMins = w.avg_holding_peroid != null ? Math.round(parseFloatSafe(w.avg_holding_peroid)/60) : null;
-    const trades = (parseInt(w[buyKey] ?? w.buy ?? 0)) + (parseInt(w[sellKey] ?? w.sell ?? 0));
-
-    wallets.unshift(mkWallet(addr, pnl, winrate, holdMins, trades, 'ca'));
-    save();
-    applyFilters();
-    badges();
-    setStatus('Done','done');
-    toast('Tracked');
-  } catch(e) {
-    setStatus('Error','error');
-    log('[Track] '+e.message,'err');
-  }
+// ── Stats (smart money only) ──────────────────────────────────
+function updateStats() {
+const list=filtered.length?filtered:wallets;
+document.getElementById('s-count').textContent=wallets.length;
+if(!list.length){['s-wr','s-pnl','s-hold','s-prof','s-shown'].forEach(id=>document.getElementById(id).textContent='—');return;}
+const avgWr=list.reduce((a,w)=>a+w.winrate,0)/list.length;
+const total=list.reduce((a,w)=>a+w.pnl,0);
+const avgH=list.reduce((a,w)=>a+w.holdMins,0)/list.length;
+const prof=list.filter(w=>w.pnl>0).length;
+document.getElementById('s-wr').textContent=Math.round(avgWr*100)+'%';
+const pe=document.getElementById('s-pnl');
+pe.textContent=(total>=0?'+$':'-$')+Math.abs(total).toLocaleString('en',{maximumFractionDigits:0});
+pe.className='stat-val '+(total>=0?'cv-green':'cv-red');
+const h=fmtHold(Math.round(avgH));
+document.getElementById('s-hold').textContent=h.v+' '+h.u;
+document.getElementById('s-prof').textContent=prof+' / '+list.length;
+document.getElementById('s-shown').textContent=filtered.length+' / '+wallets.length;
 }
 
-// ── Period tabs (1d / 7d / 30d) ────────────────────────────────
-function setPeriod(p) {
-  currentPeriod = p;
-  const btns = document.querySelectorAll('.period-btn');
-  btns.forEach(b => b.classList.toggle('active', b.dataset.period === p));
-  // Refresh smart money stats for this period so every wallet is comparable
-  refreshSmartMoneyStats();
-}
-
-async function refreshSmartMoneyStats() {
-  if (periodRefreshing) return;
-  if (!wallets || wallets.length === 0) return;
-
-  periodRefreshing = true;
-  try {
-    setStatus(`Refreshing ${currentPeriod}…`, 'running');
-    setProgress(2);
-
-    // Throttled sequential refresh to avoid rate-limits / Cloudflare
-    for (let i = 0; i < wallets.length; i++) {
-      const w = wallets[i];
-      try {
-        const sd = await pf(`https://gmgn.ai/defi/quotation/v1/smartmoney/sol/walletNew/${w.address}?period=${currentPeriod}`);
-        const d = sd.data;
-
-        if (d && typeof d === 'object') {
-          const key = `realized_profit_${currentPeriod}`;
-          const buyKey  = `buy_${currentPeriod}`;
-          const sellKey = `sell_${currentPeriod}`;
-
-          const pnl = d[key] != null ? parseFloat(d[key])
-                    : d.realized_profit != null ? parseFloat(d.realized_profit) : null;
-
-          const winrate  = d.winrate != null ? parseFloat(d.winrate) : null;
-          const holdMins = d.avg_holding_peroid != null ? Math.round(parseFloat(d.avg_holding_peroid) / 60) : null;
-          const trades   = (parseInt(d[buyKey] ?? d.buy ?? 0)) + (parseInt(d[sellKey] ?? d.sell ?? 0));
-
-          w.pnl      = pnl;
-          w.winrate  = winrate;
-          w.holdMins = holdMins;
-          w.trades   = trades || null;
-          w.hasStats = pnl !== null;
-          w.tag      = (pnl ?? 0) > 50000 ? 'whale' : (winrate ?? 0) > 0.65 ? 'smart' : (trades ?? 0) > 300 ? 'bot' : '';
-          w.lastActive = Date.now();
-        } else {
-          w.hasStats = false;
-        }
-      } catch (_) {
-        // keep prior values if refresh fails for this wallet
-      }
-
-      if ((i + 1) % 6 === 0) {
-        save();
-        applyFilters();
-        badges();
-        setProgress(Math.round(((i + 1) / wallets.length) * 100));
-        await sleep(250);
-      } else {
-        await sleep(150);
-      }
-    }
-
-    save();
-    applyFilters();
-    badges();
-    setProgress(100);
-    setStatus(`Done - ${currentPeriod}`, 'done');
-    log(`✓ Refreshed ${wallets.length} wallets for ${currentPeriod}`, 'ok');
-  } catch (e) {
-    setStatus('Error', 'error');
-    log('Period refresh failed: ' + e.message, 'err');
-  } finally {
-    periodRefreshing = false;
-    // Let the pill settle back after a moment
-    setTimeout(() => { if (!scraping) setStatus('◎ Idle'); }, 800);
-  }
-}
-
-// ── Formatting ────────────────────────────────────────────────
+// ── Utils ─────────────────────────────────────────────────────
+function removeWallet(id)     {wallets=wallets.filter(w=>(w.id||w.address)!==id);save();applyFilters();badges();toast('Removed');}
+function removeTrending(addr) {trending=trending.filter(w=>w.address!==addr);saveTrending();renderTrending();badges();toast('Removed');}
+function clearAll()           {if(!confirm(`Remove all ${wallets.length} smart money wallets?`))return;wallets=[];save();applyFilters();badges();toast('Cleared');}
 function fmtHold(m) {
-  if(!m||m<1)return{v:'-',u:''};
-  if(m<60)  return{v:m+'m',u:'minutes'};
-  if(m<1440)return{v:(m/60).toFixed(1)+'h',u:'hours'};
-  return         {v:(m/1440).toFixed(1)+'d',u:'days'};
+if(!m||m<1)return{v:'—',u:''};
+if(m<60)  return{v:m+'m',u:'minutes'};
+if(m<1440)return{v:(m/60).toFixed(1)+'h',u:'hours'};
+return         {v:(m/1440).toFixed(1)+'d',u:'days'};
 }
 function fmtDate(ts){const d=(Date.now()-ts)/86400000;if(d<1)return'today';if(d<2)return'1d ago';return Math.floor(d)+'d ago';}
 function esc(s){return s.replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));}
@@ -997,14 +841,6 @@ function cp(addr){navigator.clipboard.writeText(addr).catch(()=>{});toast('Copie
 // ── Boot ──────────────────────────────────────────────────────
 ['solscope3','solscope4','solscope5','solscope6','solscope7','solscope8','solscope9','solscope10','solscope11'].forEach(k=>localStorage.removeItem(k));
 load(); applyFilters(); renderTrending(); badges();
-
-// Period tabs init
-try {
-  document.querySelectorAll('.period-btn').forEach(b => b.addEventListener('click', () => setPeriod(b.dataset.period)));
-  // Ensure default matches button state
-  setPeriod(document.querySelector('.period-btn.active')?.dataset.period || '7d');
-} catch (_) {}
 </script>
-
 </body>
 </html>
