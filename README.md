@@ -9,11 +9,11 @@
 SolScope automatically finds the best-performing wallets on Solana by pulling from GMGN's smart money leaderboards and trending token data. No manual wallet hunting. Just hit **Auto-Discover** and get a ranked table of elite traders with their stats.
 
 Every wallet shows:
-- **Realized PnL** — how much they've actually made
-- **Win Rate** — percentage of trades that were profitable
-- **Avg Hold Time** — are they a flipper or a swing trader?
-- **Trade Count** — how active they are
-- **One-click GMGN link** — open any wallet on GMGN instantly
+- **Realized PnL** - how much they've actually made
+- **Win Rate** - percentage of trades that were profitable
+- **Avg Hold Time** - are they a flipper or a swing trader?
+- **Trade Count** - how active they are
+- **One-click GMGN link** - open any wallet on GMGN instantly
 
 ---
 
