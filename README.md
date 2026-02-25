@@ -19,13 +19,13 @@ Every wallet shows:
 
 ## Features
 
-- 🔍 **Auto-discovery** — pulls top 200 wallets from 6 GMGN leaderboards (1d/7d/30d PnL + WinRate) plus trending token buyers
-- 📊 **Real stats** — PnL, win rate, hold time, trade count all pre-computed by GMGN
-- 🎯 **Min/max filters** — filter by any combination of PnL, win rate, hold time, and trades
-- 🏷️ **Auto-tagging** — whales, smart money, and bots are automatically labeled
-- 🔗 **GMGN deep links** — one click opens any wallet on gmgn.ai
-- 💾 **Persistent storage** — wallets saved in your browser across sessions
-- ⚡ **Live updates** — table populates in real time as wallets are discovered
+- 🔍 **Auto-discovery** - pulls top 200 wallets from 6 GMGN leaderboards (1d/7d/30d PnL + WinRate) plus trending token buyers
+- 📊 **Real stats** - PnL, win rate, hold time, trade count all pre-computed by GMGN
+- 🎯 **Min/max filters** - filter by any combination of PnL, win rate, hold time, and trades
+- 🏷️ **Auto-tagging** - whales, smart money, and bots are automatically labeled
+- 🔗 **GMGN deep links** - one click opens any wallet on gmgn.ai
+- 💾 **Persistent storage** - wallets saved in your browser across sessions
+- ⚡ **Live updates** - table populates in real time as wallets are discovered
 
 ---
 
